@@ -3,36 +3,17 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using Server.MirDatabase;
-using Server.MirEnvir;
+using Client.MirGraphics;
+using Client.MirScenes;
 using S = ServerPackets;
+using System.Text.RegularExpressions;
 
-namespace Server.MirObjects
+namespace Client.MirObjects
 {
-    public sealed class ItemObject : MapObject
+    class ItemObject : MapObject
     {
-        public override ObjectType Race
-        {
+        public override ObjectType Race{
             get { return ObjectType.Item; }
-        }
-
-        public override string Name
-        {
-            get { return Item == null ? string.Empty : Item.Info.FriendlyName; }
-            set { throw new NotSupportedException(); }
-        }
-
-        public override int CurrentMapIndex { get; set; }
-        public override Point CurrentLocation { get; set; }
-        public override MirDirection Direction
-        {
-            get { throw new NotSupportedException(); }
-            set { throw new NotSupportedException(); }
-        }
-        public override ushort Level
-        {
-            get { throw new NotSupportedException(); }
-            set { throw new NotSupportedException(); }
         }
 
         public override bool Blocking
@@ -40,385 +21,136 @@ namespace Server.MirObjects
             get { return false; }
         }
 
-        public uint Gold;
-        public UserItem Item;
+        public Size Size;
 
 
-        public override uint Health
+        public ItemObject(uint objectID) : base(objectID)
         {
-            get { throw new NotSupportedException(); }
         }
 
-        public override uint MaxHealth
-        {
-            get { throw new NotSupportedException(); }
-        }
 
-        public ItemObject(MapObject dropper, UserItem item, bool DeathDrop = false)
+        public void Load(S.ObjectItem info)
         {
-            if (DeathDrop)//player dropped it when he died: allow for time to run back and pickup his drops
-                ExpireTime = Envir.Time + Settings.PlayerDiedItemTimeOut * Settings.Minute;
+            Name = info.Name;
+            NameColour = info.NameColour;
+
+            BodyLibrary = Libraries.FloorItems;
+
+            CurrentLocation = info.Location;
+            MapLocation = info.Location;
+            GameScene.Scene.MapControl.AddObject(this);
+            DrawFrame = info.Image;
+
+            Size = BodyLibrary.GetTrueSize(DrawFrame);
+
+            DrawY = CurrentLocation.Y;
+
+        }
+        public void Load(S.ObjectGold info)
+        {
+            Name = string.Format("Gold ({0:###,###,###})", info.Gold);
+
+
+            BodyLibrary = Libraries.FloorItems;
+
+            CurrentLocation = info.Location;
+            MapLocation = info.Location;
+            GameScene.Scene.MapControl.AddObject(this);
+
+            if (info.Gold < 100)
+                DrawFrame = 112;
+            else if (info.Gold < 200)
+                DrawFrame = 113;
+            else if (info.Gold < 500)
+                DrawFrame = 114;
+            else if (info.Gold < 1000)
+                DrawFrame = 115;
             else
-                ExpireTime = Envir.Time + Settings.ItemTimeOut * Settings.Minute;
+                DrawFrame = 116;
 
-            Item = item;
-            if (Item.IsAdded)
-                NameColour = Color.Cyan;
+            Size = BodyLibrary.GetTrueSize(DrawFrame);
 
-            CurrentMap = dropper.CurrentMap;
-            CurrentLocation = dropper.CurrentLocation;
+            DrawY = CurrentLocation.Y;
         }
-        public ItemObject(MapObject dropper, UserItem item, Point manualpoint)
+        public override void Draw()
         {
-            ExpireTime = Envir.Time + Settings.ItemTimeOut * Settings.Minute;
-
-            Item = item;
-            if (Item.IsAdded)
-                NameColour = Color.Cyan;
-
-            CurrentMap = dropper.CurrentMap;
-            CurrentLocation = manualpoint;
+            if (BodyLibrary != null)
+                BodyLibrary.Draw(DrawFrame, DrawLocation, DrawColour);
         }
-        public ItemObject(MapObject dropper, uint gold)
-        {
-            ExpireTime = Envir.Time + Settings.ItemTimeOut * Settings.Minute;
 
-            Gold = gold;
-
-            CurrentMap = dropper.CurrentMap;
-            CurrentLocation = dropper.CurrentLocation;
-        }
-        public ItemObject(MapObject dropper, uint gold, Point manuallocation)
-        {
-            ExpireTime = Envir.Time + Settings.ItemTimeOut * Settings.Minute;
-
-            Gold = gold;
-
-            CurrentMap = dropper.CurrentMap;
-            CurrentLocation = manuallocation;
-        }
-         
         public override void Process()
         {
-            if (Envir.Time > ExpireTime)
+            DrawLocation = new Point((CurrentLocation.X - User.Movement.X + MapControl.OffSetX) * MapControl.CellWidth, (CurrentLocation.Y - User.Movement.Y + MapControl.OffSetY) * MapControl.CellHeight);
+            DrawLocation.Offset((MapControl.CellWidth - Size.Width) / 2, (MapControl.CellHeight - Size.Height) / 2);
+            DrawLocation.Offset(User.OffSetMove);
+            DrawLocation.Offset(GlobalDisplayLocationOffset);
+            FinalDrawLocation = DrawLocation;
+
+            DisplayRectangle = new Rectangle(DrawLocation, Size);
+        }
+        public override bool MouseOver(Point p)
+        {
+            return MapControl.MapLocation == CurrentLocation;
+            // return DisplayRectangle.Contains(p);
+        }
+
+        public override void DrawName()
+        {
+            CreateLabel(Color.Transparent, false, true);
+
+            if (NameLabel == null) return;
+            NameLabel.Location = new Point(
+                DisplayRectangle.X + (DisplayRectangle.Width - NameLabel.Size.Width) / 2,
+                DisplayRectangle.Y + (DisplayRectangle.Height - NameLabel.Size.Height) / 2 - 20);
+            NameLabel.Draw();
+        }
+
+        public override void DrawBehindEffects(bool effectsEnabled)
+        {
+        }
+
+        public override void DrawEffects(bool effectsEnabled)
+        {
+            
+
+        }
+
+        public void DrawName(int y)
+        {
+            CreateLabel(Color.FromArgb(100, 0, 24, 48), true, false);
+
+            NameLabel.Location = new Point(
+                DisplayRectangle.X + (DisplayRectangle.Width - NameLabel.Size.Width) / 2,
+                DisplayRectangle.Y + y + (DisplayRectangle.Height - NameLabel.Size.Height) / 2 - 20);
+            NameLabel.Draw();
+        }
+
+        private void CreateLabel(Color backColour, bool border, bool outline)
+        {
+            NameLabel = null;
+
+            for (int i = 0; i < LabelList.Count; i++)
             {
-                CurrentMap.RemoveObject(this);
-                Despawn();
-                return;
+                if (LabelList[i].Text != Name || LabelList[i].Border != border || LabelList[i].BackColour != backColour || LabelList[i].ForeColour != NameColour || LabelList[i].OutLine != outline) continue;
+                NameLabel = LabelList[i];
+                break;
             }
+            if (NameLabel != null && !NameLabel.IsDisposed) return;
 
-            if (Owner != null && Envir.Time > OwnerTime)
-                Owner = null;
-
-            base.Process();
-        }
-
-        public override void SetOperateTime()
-        {
-            long time = Envir.Time + 2000;
-
-            if (OwnerTime < time && OwnerTime > Envir.Time)
-                time = OwnerTime;
-
-            if (ExpireTime < time && ExpireTime > Envir.Time)
-                time = ExpireTime;
-
-            if (PKPointTime < time && PKPointTime > Envir.Time)
-                time = PKPointTime;
-
-            if (LastHitTime < time && LastHitTime > Envir.Time)
-                time = LastHitTime;
-
-            if (EXPOwnerTime < time && EXPOwnerTime > Envir.Time)
-                time = EXPOwnerTime;
-
-            if (BrownTime < time && BrownTime > Envir.Time)
-                time = BrownTime;
-
-            for (int i = 0; i < ActionList.Count; i++)
+            NameLabel = new MirControls.MirLabel
             {
-                if (ActionList[i].Time >= time && ActionList[i].Time > Envir.Time) continue;
-                time = ActionList[i].Time;
-            }
+                AutoSize = true,
+                BorderColour = Color.Black,
+                BackColour = backColour,
+                ForeColour = NameColour,
+                OutLine = outline,
+                Border = border,
+                Text = Regex.Replace(Name, @"\d+$", string.Empty),
+            };
 
-            for (int i = 0; i < PoisonList.Count; i++)
-            {
-                if (PoisonList[i].TickTime >= time && PoisonList[i].TickTime > Envir.Time) continue;
-                time = PoisonList[i].TickTime;
-            }
-
-            for (int i = 0; i < Buffs.Count; i++)
-            {
-                if (Buffs[i].ExpireTime >= time && Buffs[i].ExpireTime > Envir.Time) continue;
-                time = Buffs[i].ExpireTime;
-            }
-
-
-            if (OperateTime <= Envir.Time || time < OperateTime)
-                OperateTime = time;
+            LabelList.Add(NameLabel);
         }
 
 
-        public bool Drop(int distance)
-        {
-            if (CurrentMap == null) return false;
-
-            Cell best = null;
-            int bestCount = 0;
-            Point bestLocation = Point.Empty;
-
-            for (int d = 0; d <= distance; d++)
-            {
-                for (int y = CurrentLocation.Y - d; y <= CurrentLocation.Y + d; y++)
-                {
-                    if (y < 0) continue;
-                    if (y >= CurrentMap.Height) break;
-
-                    for (int x = CurrentLocation.X - d; x <= CurrentLocation.X + d; x += Math.Abs(y - CurrentLocation.Y) == d ? 1 : d*2)
-                    {
-                        if (x < 0) continue;
-                        if (x >= CurrentMap.Width) break;
-                        if (!CurrentMap.ValidPoint(x, y)) continue;
-
-                        bool movement = false;
-                        for (int i = 0; i < CurrentMap.Info.Movements.Count; i++)
-                        {
-                            MovementInfo info = CurrentMap.Info.Movements[i];
-                            if (info.Source != new Point(x,y)) continue;
-                            movement = true;
-                            break;
-                        }
-
-                        if (movement) continue;
-
-                        Cell cell = CurrentMap.GetCell(x, y);
-
-                        if (cell.Objects == null)
-                        {
-                            CurrentLocation = new Point(x, y);
-                            CurrentMap.AddObject(this);
-                            Spawned();
-                            return true;
-                        }
-
-                        int count = 0;
-                        bool blocking = false;
-
-                        for (int i = 0; i < cell.Objects.Count; i++)
-                        {
-                            MapObject ob = cell.Objects[i];
-                            if (ob.Blocking)
-                            {
-                                blocking = true;
-                                break;
-                            }
-                            if (ob.Race == ObjectType.Item)
-                                count++;
-                        }
-
-                        if (blocking || count >= Settings.DropStackSize) continue;
-
-                        if (count == 0)
-                        {
-                            CurrentLocation = new Point(x, y);
-                            CurrentMap.AddObject(this);
-                            Spawned();
-                            return true;
-                        }
-
-                        if (best == null || count < bestCount)
-                        {
-                            best = cell;
-                            bestCount = count;
-                            bestLocation = new Point(x, y);
-                        }
-                    }
-                }
-            }
-
-            if (best == null)
-
-                return false;
-
-            CurrentLocation = bestLocation;
-            CurrentMap.AddObject(this);
-            Spawned();
-            return true;
-        }
-
-        public bool DragonDrop(int distance)
-        {
-            if (CurrentMap == null) return false;
-
-            Cell best = null;
-            int bestCount = 0;
-            Point bestLocation = Point.Empty;
-
-            for (int d = 0; d <= distance; d++)
-            {
-                for (int y = CurrentLocation.Y + 3; y <= CurrentLocation.Y + (d * 2); y++)
-                {
-                    if (y < 0) continue;
-                    if (y >= CurrentMap.Height) break;
-
-                    for (int x = CurrentLocation.X - d; x <= CurrentLocation.X + d; x += Math.Abs(y - CurrentLocation.Y) == d ? 1 : d * 2)
-                    {
-                        if (x < 0) continue;
-                        if (x >= CurrentMap.Width) break;
-                        if (!CurrentMap.ValidPoint(x, y)) continue;
-
-                        bool movement = false;
-                        for (int i = 0; i < CurrentMap.Info.Movements.Count; i++)
-                        {
-                            MovementInfo info = CurrentMap.Info.Movements[i];
-                            if (info.Source != new Point(x, y)) continue;
-                            movement = true;
-                            break;
-                        }
-
-                        if (movement) continue;
-
-                        Cell cell = CurrentMap.GetCell(x, y);
-
-                        if (cell.Objects == null)
-                        {
-                            CurrentLocation = new Point(x, y);
-                            CurrentMap.AddObject(this);
-                            Spawned();
-                            return true;
-                        }
-
-                        int count = 0;
-                        bool blocking = false;
-
-                        for (int i = 0; i < cell.Objects.Count; i++)
-                        {
-                            MapObject ob = cell.Objects[i];
-                            if (ob.Blocking)
-                            {
-                                blocking = true;
-                                break;
-                            }
-                            if (ob.Race == ObjectType.Item)
-                                count++;
-                        }
-
-                        if (blocking || count >= Settings.DropStackSize) continue;
-
-                        if (count == 0)
-                        {
-                            CurrentLocation = new Point(x, y);
-                            CurrentMap.AddObject(this);
-                            Spawned();
-                            return true;
-                        }
-
-                        if (best == null || count < bestCount)
-                        {
-                            best = cell;
-                            bestCount = count;
-                            bestLocation = new Point(x, y);
-                        }
-                    }
-                }
-            }
-
-            if (best == null)
-
-                return false;
-
-            CurrentLocation = bestLocation;
-            CurrentMap.AddObject(this);
-            Spawned();
-            return true;
-        }
-
-
-        public override Packet GetInfo()
-        {
-            if (Item != null)
-                return new S.ObjectItem
-                    {
-                        ObjectID = ObjectID,
-                        Name = Item.Count > 1 ? string.Format("{0} ({1})", Name, Item.Count) : Name,
-                        NameColour = NameColour,
-                        Location = CurrentLocation,
-                        Image = Item.Image
-                    };
-
-            return new S.ObjectGold
-                {
-                    ObjectID =  ObjectID,
-                    Gold = Gold,
-                    Location = CurrentLocation,
-                };
-        }
-
-
-
-        public override void Process(DelayedAction action)
-        {
-            throw new NotSupportedException();
-        }
-        public override bool IsAttackTarget(PlayerObject attacker)
-        {
-            throw new NotSupportedException();
-        }
-        public override bool IsAttackTarget(MonsterObject attacker)
-        {
-            throw new NotSupportedException();
-        }
-        public override int Attacked(PlayerObject attacker, int damage, DefenceType type = DefenceType.ACAgility, bool damageWeapon = true)
-        {
-            throw new NotSupportedException();
-        }
-        public override int Attacked(MonsterObject attacker, int damage, DefenceType type = DefenceType.ACAgility)
-        {
-            throw new NotSupportedException();
-        }
-        public override int Struck(int damage, DefenceType type = DefenceType.ACAgility)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override void ApplyPoison(Poison p, MapObject Caster = null, bool NoResist = false, bool ignoreDefence = true)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override void AddBuff(Buff b)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override bool IsFriendlyTarget(PlayerObject ally)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override bool IsFriendlyTarget(MonsterObject ally)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override void Die()
-        {
-            throw new NotSupportedException();
-        }
-
-        public override void SendHealth(PlayerObject player)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override int Pushed(MapObject pusher, MirDirection dir, int distance)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override void ReceiveChat(string text, ChatType type)
-        {
-            throw new NotSupportedException();
-        }
     }
 }

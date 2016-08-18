@@ -1,814 +1,418 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using Server.MirDatabase;
-using Server.MirEnvir;
-using Server.MirObjects.Monsters;
-using S = ServerPackets;
-using System.IO;
 using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+using Client.MirControls;
+using Client.MirGraphics;
+using Client.MirScenes;
+using Client.MirSounds;
+using Client.MirScenes.Dialogs;
 
-namespace Server.MirObjects
+namespace Client.MirObjects
 {
     public abstract class MapObject
     {
-        protected static Envir Envir
-        {
-            get { return SMain.Envir; }
-        }
+        public static Font ChatFont = new Font(Settings.FontName, 10F);
+        public static List<MirLabel> LabelList = new List<MirLabel>();
 
-        public readonly uint ObjectID = SMain.Envir.ObjectID;
-
+        public static UserObject User;
+        public static MapObject MouseObject, TargetObject, MagicObject;
         public abstract ObjectType Race { get; }
+        public abstract bool Blocking { get; }
 
-        public abstract string Name { get; set; }
+        public uint ObjectID;
+        public string Name = string.Empty;
+        public Point CurrentLocation, MapLocation;
+        public MirDirection Direction;
+        public bool Dead, Hidden, SitDown, Sneaking;
+        public PoisonType Poison;
+        public long DeadTime;
+        public byte AI;
+        public bool InTrapRock;
 
-        public long ExplosionInflictedTime;
-        public int ExplosionInflictedStage;
+        public bool Blend = true;
 
-        private int SpawnThread;
+        public uint TradeGoldAmount;
 
-        //Position
-        private Map _currentMap;
-        public Map CurrentMap
+        public byte PercentHealth;
+        public long HealthTime;
+
+        public List<QueuedAction> ActionFeed = new List<QueuedAction>();
+        public QueuedAction NextAction
         {
-            set
-            {
-                _currentMap = value;
-                CurrentMapIndex = _currentMap != null ? _currentMap.Info.Index : 0;
-            }
-            get { return _currentMap; }
+            get { return ActionFeed.Count > 0 ? ActionFeed[0] : null; }
         }
 
-        public abstract int CurrentMapIndex { get; set; }
-        public abstract Point CurrentLocation { get; set; }
-        public abstract MirDirection Direction { get; set; }
+        public List<Effect> Effects = new List<Effect>();
+        public List<BuffType> Buffs = new List<BuffType>();
 
-        public abstract ushort Level { get; set; }
-
-        public abstract uint Health { get; }
-        public abstract uint MaxHealth { get; }
-        public byte PercentHealth
-        {
-            get { return (byte) (Health/(float) MaxHealth*100); }
-
-        }
-
-        public ushort MinAC, MaxAC, MinMAC, MaxMAC;
-        public ushort MinDC, MaxDC, MinMC, MaxMC, MinSC, MaxSC;
-
-        public byte Accuracy, Agility, Light;
-        public sbyte ASpeed, Luck;
-        public int AttackSpeed;
-
-        public ushort CurrentHandWeight,
-                   MaxHandWeight,
-                   CurrentWearWeight,
-                   MaxWearWeight;
-
-        public ushort CurrentBagWeight,
-                      MaxBagWeight;
-
-        public byte MagicResist, PoisonResist, HealthRecovery, SpellRecovery, PoisonRecovery, CriticalRate, CriticalDamage, Holy, Freezing, PoisonAttack;
-
-        public long CellTime, BrownTime, PKPointTime, LastHitTime, EXPOwnerTime;
-        public Color NameColour = Color.White;
+        public MLibrary BodyLibrary;
+        public Color DrawColour = Color.White, NameColour = Color.White, LightColour = Color.White;
+        public MirLabel NameLabel, ChatLabel, GuildLabel;
+        public long ChatTime;
+        public int DrawFrame, DrawWingFrame;
+        public Point DrawLocation, Movement, FinalDrawLocation, OffSetMove;
+        public Rectangle DisplayRectangle;
+        public int Light, DrawY;
+        public long NextMotion, NextMotion2;
+        public MirAction CurrentAction;
+        public bool SkipFrames;
         
-        public bool Dead, Undead, Harvested, AutoRev;
+        //Sound
+        public int StruckWeapon;
 
-        public List<KeyValuePair<string, string>> NPCVar = new List<KeyValuePair<string, string>>();
+        public MirLabel TempLabel;
 
-        public virtual int PKPoints { get; set; }
+        public static List<MirLabel> DamageLabelList = new List<MirLabel>();
+        public List<Damage> Damages = new List<Damage>();
 
-        public ushort PotHealthAmount, PotManaAmount, HealAmount, VampAmount;
-        //public bool HealthChanged;
-
-        public float ItemDropRateOffset = 0, GoldDropRateOffset = 0;
-
-        public bool CoolEye;
-        private bool _hidden;
-        
-        public bool Hidden
+        protected Point GlobalDisplayLocationOffset
         {
-            get
-            {
-                return _hidden;
-            }
-            set
-            {
-                if (_hidden == value) return;
-                _hidden = value;
-                CurrentMap.Broadcast(new S.ObjectHidden {ObjectID = ObjectID, Hidden = value}, CurrentLocation);
-            }
+            get { return new Point(0, 0); }
         }
 
-        private bool _observer;
-        public bool Observer
+        protected MapObject(uint objectID)
         {
-            get
+            ObjectID = objectID;
+
+            for (int i = MapControl.Objects.Count - 1; i >= 0; i--)
             {
-                return _observer;
-            }
-            set
-            {
-                if (_observer == value) return;
-                _observer = value;
-                if (!_observer)
-                    BroadcastInfo();
-                else
-                    Broadcast(new S.ObjectRemove { ObjectID = ObjectID });
-            }
-        }
-
-        #region Sneaking
-        private bool _sneakingActive;
-        public bool SneakingActive
-        {
-            get { return _sneakingActive; }
-            set
-            {
-                if (_sneakingActive == value) return;
-                _sneakingActive = value;
-
-                Observer = _sneakingActive;
-
-                //CurrentMap.Broadcast(new S.ObjectSneaking { ObjectID = ObjectID, SneakingActive = value }, CurrentLocation);
-            }
-        }
-
-        private bool _sneaking;
-        public bool Sneaking
-        {
-            get { return _sneaking; }
-            set { _sneaking = value; SneakingActive = value; }
-        }
-        #endregion
-
-        public MapObject _target;
-        public virtual MapObject Target
-        {
-            get { return _target; }
-            set
-            {
-                if (_target == value) return;
-                _target = value;
+                MapObject ob = MapControl.Objects[i];
+                if (ob.ObjectID != ObjectID) continue;
+                ob.Remove();
             }
 
+            MapControl.Objects.Add(this);
+        }
+        public void Remove()
+        {
+            if (MouseObject == this) MouseObject = null;
+            if (TargetObject == this) TargetObject = null;
+            if (MagicObject == this) MagicObject = null;
+
+            if (this == User.NextMagicObject)
+                User.ClearMagic();
+
+            MapControl.Objects.Remove(this);
+            GameScene.Scene.MapControl.RemoveObject(this);
+
+            if (ObjectID != GameScene.NPCID) return;
+
+            GameScene.NPCID = 0;
+            GameScene.Scene.NPCDialog.Hide();
         }
 
-        public MapObject Master, LastHitter, EXPOwner, Owner;
-        public long ExpireTime, OwnerTime, OperateTime;
-        public int OperateDelay = 100;
+        public abstract void Process();
+        public abstract void Draw();
+        public abstract bool MouseOver(Point p);
 
-        public List<MonsterObject> Pets = new List<MonsterObject>();
-        public List<Buff> Buffs = new List<Buff>();
-
-        public List<PlayerObject> GroupMembers;
-
-        public virtual AttackMode AMode { get; set; }
-
-        public virtual PetMode PMode { get; set; }
-        public bool InSafeZone;
-
-        public float ArmourRate, DamageRate; //recieved not given
-
-        public List<Poison> PoisonList = new List<Poison>();
-        public PoisonType CurrentPoison = PoisonType.None;
-        public List<DelayedAction> ActionList = new List<DelayedAction>();
-
-        public LinkedListNode<MapObject> Node;
-        public LinkedListNode<MapObject> NodeThreaded;
-        public long RevTime;
-
-        public virtual bool Blocking
+        public void AddBuffEffect(BuffType type)
         {
-            get { return true; }
-        }
-
-        public Point Front
-        {
-            get { return Functions.PointMove(CurrentLocation, Direction, 1); }
-
-        }
-        public Point Back
-        {
-            get { return Functions.PointMove(CurrentLocation, Direction, -1); }
-
-        }
-        
-        
-        public virtual void Process()
-        {
-            if (Master != null && Master.Node == null) Master = null;
-            if (LastHitter != null && LastHitter.Node == null) LastHitter = null;
-            if (EXPOwner != null && EXPOwner.Node == null) EXPOwner = null;
-            if (Target != null && (Target.Node == null || Target.Dead)) Target = null;
-            if (Owner != null && Owner.Node == null) Owner = null;
-
-            if (Envir.Time > PKPointTime && PKPoints > 0)
+            for (int i = 0; i < Effects.Count; i++)
             {
-                PKPointTime = Envir.Time + Settings.PKDelay * Settings.Second;
-                PKPoints--;
-            }
-            
-            if (LastHitter != null && Envir.Time > LastHitTime)
-                LastHitter = null;
-
-
-            if (EXPOwner != null && Envir.Time > EXPOwnerTime)
-            {
-                EXPOwner = null;
+                if (!(Effects[i] is BuffEffect)) continue;
+                if (((BuffEffect)(Effects[i])).BuffType == type) return;
             }
 
-            for (int i = 0; i < ActionList.Count; i++)
+            PlayerObject ob = null;
+
+            if (Race == ObjectType.Player)
             {
-                if (Envir.Time < ActionList[i].Time) continue;
-                Process(ActionList[i]);
-                ActionList.RemoveAt(i);
+                ob = (PlayerObject)this;
+            }
+
+            switch (type)
+            {
+                case BuffType.Fury:
+                    Effects.Add(new BuffEffect(Libraries.Magic3, 190, 7, 1400, this, true, type) { Repeat = true });
+                    break;
+                case BuffType.ImmortalSkin:
+                    Effects.Add(new BuffEffect(Libraries.Magic3, 570, 5, 1400, this, true, type) { Repeat = true });
+                    break;
+                case BuffType.SwiftFeet:
+                    if (ob != null) ob.Sprint = true;
+                    break;
+                case BuffType.MoonLight:
+                case BuffType.DarkBody:
+                    if (ob != null) ob.Sneaking = true;
+                    break;
+                case BuffType.VampireShot:
+                    Effects.Add(new BuffEffect(Libraries.Magic3, 2110, 6, 1400, this, true, type) { Repeat = false });
+                    break;
+                case BuffType.PoisonShot:
+                    Effects.Add(new BuffEffect(Libraries.Magic3, 2310, 7, 1400, this, true, type) { Repeat = false });
+                    break;
+                case BuffType.EnergyShield:
+                    BuffEffect effect;
+
+                    Effects.Add(effect = new BuffEffect(Libraries.Magic2, 1880, 9, 900, this, true, type) { Repeat = false });
+                    SoundManager.PlaySound(20000 + (ushort)Spell.EnergyShield * 10 + 0);
+
+                    effect.Complete += (o, e) =>
+                    {
+                        Effects.Add(new BuffEffect(Libraries.Magic2, 1900, 2, 800, this, true, type) { Repeat = true });
+                    };
+                    break;
+                case BuffType.MagicBooster:
+                    Effects.Add(new BuffEffect(Libraries.Magic3, 90, 6, 1200, this, true, type) { Repeat = true });
+                    break;
+                case BuffType.PetEnhancer:
+                    Effects.Add(new BuffEffect(Libraries.Magic3, 230, 6, 1200, this, true, type) { Repeat = true });
+                    break;
+                case BuffType.Frozen:
+                    Effects.Add(new BuffEffect(Libraries.Magic4, 2520, 70, 1200, this, true, type) { Repeat = true });
+                    break;
+            }
+        }
+        public void RemoveBuffEffect(BuffType type)
+        {
+            PlayerObject ob = null;
+            MonsterObject mob = null;
+
+            if (Race == ObjectType.Player)
+            {
+                ob = (PlayerObject)this;
+            }
+
+            for (int i = 0; i < Effects.Count; i++)
+            {
+                if (!(Effects[i] is BuffEffect)) continue;
+                if (((BuffEffect)(Effects[i])).BuffType != type) continue;
+                Effects[i].Repeat = false;
+            }
+
+            //if (Race == ObjectType.Monster)
+           // {
+             //   mob = (MonsterObject)this;
+           // }
+
+           // for (int i = 0; i < Effects.Count; i++)
+            //{
+           //     if (!(Effects[i] is BuffEffect)) continue;
+            //    if (((BuffEffect)(Effects[i])).BuffType != type) continue;
+           //     Effects[i].Repeat = false;
+          //  }
+
+            switch (type)
+            {
+                case BuffType.SwiftFeet:
+                    if (ob != null) ob.Sprint = false;
+                    break;
+                case BuffType.MoonLight:
+                case BuffType.DarkBody:
+                    if (ob != null) ob.Sneaking = false;
+                    break;
             }
         }
 
-        public abstract void SetOperateTime();
-
-        public int GetAttackPower(int min, int max)
+        public void Chat(string text)
         {
-            if (min < 0) min = 0;
-            if (min > max) max = min;
-
-            if (Luck > 0)
+            if (ChatLabel != null && !ChatLabel.IsDisposed)
             {
-                if (Luck > Envir.Random.Next(Settings.MaxLuck))
-                    return max;
-            }
-            else if (Luck < 0)
-            {
-                if (Luck < -Envir.Random.Next(Settings.MaxLuck))
-                    return min;
+                ChatLabel.Dispose();
+                ChatLabel = null;
             }
 
-            return Envir.Random.Next(min, max + 1);
-        }
+            const int chatWidth = 200;
+            List<string> chat = new List<string>();
 
-        public int GetDefencePower(int min, int max)
-        {
-            if (min < 0) min = 0;
-            if (min > max) max = min;
+            int index = 0;
+            for (int i = 1; i < text.Length; i++)
+                if (TextRenderer.MeasureText(CMain.Graphics, text.Substring(index, i - index), ChatFont).Width > chatWidth)
+                {
+                    chat.Add(text.Substring(index, i - index - 1));
+                    index = i - 1;
+                }
+            chat.Add(text.Substring(index, text.Length - index));
 
-            return Envir.Random.Next(min, max + 1);
-        }
+            text = chat[0];
+            for (int i = 1; i < chat.Count; i++)
+                text += string.Format("\n{0}", chat[i]);
 
-        public virtual void Remove(PlayerObject player)
-        {
-            player.Enqueue(new S.ObjectRemove {ObjectID = ObjectID});
-        }
-        public virtual void Add(PlayerObject player)
-        {
-            if (Race == ObjectType.Merchant)
+            ChatLabel = new MirLabel
             {
-                NPCObject NPC = (NPCObject)this;
-                NPC.CheckVisible(player, true);
+                AutoSize = true,
+                BackColour = Color.Transparent,
+                ForeColour = Color.White,
+                OutLine = true,
+                OutLineColour = Color.Black,
+                DrawFormat = TextFormatFlags.HorizontalCenter,
+                Text = text,
+            };
+            ChatTime = CMain.Time + 5000;
+        }
+        public virtual void DrawChat()
+        {
+            if (ChatLabel == null || ChatLabel.IsDisposed) return;
+
+            if (CMain.Time > ChatTime)
+            {
+                ChatLabel.Dispose();
+                ChatLabel = null;
                 return;
             }
 
-            player.Enqueue(GetInfo());
-
-            //if (Race == ObjectType.Player)
-            //{
-            //    PlayerObject me = (PlayerObject)this;
-            //    player.Enqueue(me.GetInfoEx(player));
-            //}
-            //else
-            //{
-            //    player.Enqueue(GetInfo());
-            //}
-        }
-        public virtual void Remove(MonsterObject monster)
-        {
-
-        }
-        public virtual void Add(MonsterObject monster)
-        {
-
+            ChatLabel.ForeColour = Dead ? Color.Gray : Color.White;
+            ChatLabel.Location = new Point(DisplayRectangle.X + (48 - ChatLabel.Size.Width) / 2, DisplayRectangle.Y - (60 + ChatLabel.Size.Height) - (Dead ? 35 : 0));
+            ChatLabel.Draw();
         }
 
-        public abstract void Process(DelayedAction action);
-
-
-        public bool CanFly(Point target)
+        public virtual void CreateLabel()
         {
-            Point location = CurrentLocation;
-            while (location != target)
+            NameLabel = null;
+
+            for (int i = 0; i < LabelList.Count; i++)
             {
-                MirDirection dir = Functions.DirectionFromPoint(location, target);
-
-                location = Functions.PointMove(location, dir, 1);
-
-                if (location.X < 0 || location.Y < 0 || location.X >= CurrentMap.Width || location.Y >= CurrentMap.Height) return false;
-
-                if (!CurrentMap.GetCell(location).Valid) return false;
-
+                if (LabelList[i].Text != Name || LabelList[i].ForeColour != NameColour) continue;
+                NameLabel = LabelList[i];
+                break;
             }
 
-            return true;
-        }
 
-        public virtual void Spawned()
-        {
-            Node = Envir.Objects.AddLast(this);
-            if ((Race == ObjectType.Monster) && Settings.Multithreaded)
+            if (NameLabel != null && !NameLabel.IsDisposed) return;
+
+            NameLabel = new MirLabel
             {
-                SpawnThread = CurrentMap.Thread;
-                NodeThreaded = Envir.MobThreads[SpawnThread].ObjectsList.AddLast(this);
-            }
-            OperateTime = Envir.Time + Envir.Random.Next(OperateDelay);
+                AutoSize = true,
+                BackColour = Color.Transparent,
+                ForeColour = NameColour,
+                OutLine = true,
+                OutLineColour = Color.Black,
+                Text = Name,
+            };
+            NameLabel.Disposing += (o, e) => LabelList.Remove(NameLabel);
+            LabelList.Add(NameLabel);
 
-            InSafeZone = CurrentMap != null && CurrentMap.GetSafeZone(CurrentLocation) != null;
-            BroadcastInfo();
-            BroadcastHealthChange();
+
+
         }
-        public virtual void Despawn()
+        public virtual void DrawName()
         {
-            Broadcast(new S.ObjectRemove {ObjectID = ObjectID});
-            Envir.Objects.Remove(Node);
-            if (Settings.Multithreaded && (Race == ObjectType.Monster))
-            {
-                Envir.MobThreads[SpawnThread].ObjectsList.Remove(NodeThreaded);
-            }            
+            CreateLabel();
 
-            ActionList.Clear();
-
-            for (int i = Pets.Count - 1; i >= 0; i--)
-                Pets[i].Die();
-
-            Node = null;
+            if (NameLabel == null) return;
+            
+            NameLabel.Text = Name;
+            NameLabel.Location = new Point(DisplayRectangle.X + (50 - NameLabel.Size.Width) / 2, DisplayRectangle.Y - (32 - NameLabel.Size.Height / 2) + (Dead ? 35 : 8)); //was 48 -
+            NameLabel.Draw();
         }
-
-        public MapObject FindObject(uint targetID, int dist)
+        public virtual void DrawBlend()
         {
-            for (int d = 0; d <= dist; d++)
+            DXManager.SetBlend(true, 0.3F); //0.8
+            Draw();
+            DXManager.SetBlend(false);
+        }
+        public void DrawDamages()
+        {
+            for (int i = Damages.Count - 1; i >= 0; i--)
             {
-                for (int y = CurrentLocation.Y - d; y <= CurrentLocation.Y + d; y++)
+                Damage info = Damages[i];
+                if (CMain.Time > info.ExpireTime)
                 {
-                    if (y < 0) continue;
-                    if (y >= CurrentMap.Height) break;
-
-                    for (int x = CurrentLocation.X - d; x <= CurrentLocation.X + d; x += Math.Abs(y - CurrentLocation.Y) == d ? 1 : d * 2)
-                    {
-                        if (x < 0) continue;
-                        if (x >= CurrentMap.Width) break;
-
-                        Cell cell = CurrentMap.GetCell(x, y);
-                        if (!cell.Valid || cell.Objects == null) continue;
-
-                        for (int i = 0; i < cell.Objects.Count; i++)
-                        {
-                            MapObject ob = cell.Objects[i];
-                            if (ob.ObjectID != targetID) continue;
-
-                            return ob;
-                        }
-                    }
+                    Damages.RemoveAt(i);
+                }
+                else
+                {
+                    info.Draw(DisplayRectangle.Location);
                 }
             }
-            return null;
         }
-
-
-        public virtual void Broadcast(Packet p)
+        public void DrawHealth()
         {
-            if (p == null || CurrentMap == null) return;
+            string name = Name;
 
-            for (int i = CurrentMap.Players.Count - 1; i >= 0; i--)
+            if (Name.Contains("(")) name = Name.Substring(Name.IndexOf("(") + 1, Name.Length - Name.IndexOf("(") - 2);
+
+            if (Dead) return;
+            if (Race != ObjectType.Player && Race != ObjectType.Monster) return;
+
+            if (CMain.Time >= HealthTime)
             {
-                PlayerObject player = CurrentMap.Players[i];
-                if (player == this) continue;
-
-                if (Functions.InRange(CurrentLocation, player.CurrentLocation, Globals.DataRange))
-                    player.Enqueue(p);
+                if (Race == ObjectType.Monster && !Name.EndsWith(string.Format("({0})", User.Name)) && !GroupDialog.GroupList.Contains(name)) return;
+                if (Race == ObjectType.Player && this != User && !GroupDialog.GroupList.Contains(Name)) return;
+                if (this == User && GroupDialog.GroupList.Count == 0) return;
             }
-        }
-
-        public virtual void BroadcastInfo()
-        {
-            Broadcast(GetInfo());
-            return;
-        } 
-
-        public abstract bool IsAttackTarget(PlayerObject attacker);
-        public abstract bool IsAttackTarget(MonsterObject attacker);
-        public abstract int Attacked(PlayerObject attacker, int damage, DefenceType type = DefenceType.ACAgility, bool damageWeapon = true);
-        public abstract int Attacked(MonsterObject attacker, int damage, DefenceType type = DefenceType.ACAgility);
-
-        public abstract int Struck(int damage, DefenceType type = DefenceType.ACAgility);
-
-        public abstract bool IsFriendlyTarget(PlayerObject ally);
-        public abstract bool IsFriendlyTarget(MonsterObject ally);
-
-        public abstract void ReceiveChat(string text, ChatType type);
-
-        public abstract Packet GetInfo();
-
-        public virtual void WinExp(uint amount, uint targetLevel = 0)
-        {
 
 
-        }
+            Libraries.Prguse2.Draw(0, DisplayRectangle.X + 8, DisplayRectangle.Y - 64);
+            int index = 1;
 
-        public virtual bool CanGainGold(uint gold)
-        {
-            return false;
-        }
-        public virtual void WinGold(uint gold)
-        {
-
-        }
-
-        public virtual bool Harvest(PlayerObject player) { return false; }
-
-        public abstract void ApplyPoison(Poison p, MapObject Caster = null, bool NoResist = false, bool ignoreDefence = true);
-        public virtual void AddBuff(Buff b)
-        {
-            switch (b.Type)
+            switch (Race)
             {
-                case BuffType.MoonLight:
-                case BuffType.Hiding:
-                case BuffType.DarkBody:
-                    Hidden = true;
-
-                    if (b.Type == BuffType.MoonLight || b.Type == BuffType.DarkBody) Sneaking = true;
-
-                    for (int y = CurrentLocation.Y - Globals.DataRange; y <= CurrentLocation.Y + Globals.DataRange; y++)
-                    {
-                        if (y < 0) continue;
-                        if (y >= CurrentMap.Height) break;
-
-                        for (int x = CurrentLocation.X - Globals.DataRange; x <= CurrentLocation.X + Globals.DataRange; x++)
-                        {
-                            if (x < 0) continue;
-                            if (x >= CurrentMap.Width) break;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Monster) continue;
-
-                                if (ob.Target == this && (!ob.CoolEye || ob.Level < Level)) ob.Target = null;
-                            }
-                        }
-                    }
+                case ObjectType.Player:
+                    if (GroupDialog.GroupList.Contains(name)) index = 10;
+                    break;
+                case ObjectType.Monster:
+                    if (GroupDialog.GroupList.Contains(name) || name == User.Name) index = 11;
                     break;
             }
 
-
-            for (int i = 0; i < Buffs.Count; i++)
-            {
-                if (Buffs[i].Type != b.Type) continue;
-
-                Buffs[i] = b;
-                Buffs[i].Paused = false;
-                return;
-            }
-
-            Buffs.Add(b);
-        }
-        public void RemoveBuff(BuffType b)
-        {
-            for (int i = 0; i < Buffs.Count; i++)
-            {
-                if (Buffs[i].Type != b) continue;
-
-                Buffs[i].Infinite = false;
-                Buffs[i].ExpireTime = Envir.Time;
-            }
+            Libraries.Prguse2.Draw(index, new Rectangle(0, 0, (int)(32 * PercentHealth / 100F), 4), new Point(DisplayRectangle.X + 8, DisplayRectangle.Y - 64), Color.White, false);
         }
 
-        public bool CheckStacked()
+        public void DrawPoison()
         {
-            Cell cell = CurrentMap.GetCell(CurrentLocation);
-
-            if (cell.Objects != null)
-                for (int i = 0; i < cell.Objects.Count; i++)
+            byte poisoncount = 0;
+            if (Poison != PoisonType.None)
+            {
+                if (Poison.HasFlag(PoisonType.Green))
                 {
-                    MapObject ob = cell.Objects[i];
-                    if (ob == this || !ob.Blocking) continue;
-                    return true;
+                    DXManager.Sprite.Draw2D(DXManager.PoisonDotBackground, Point.Empty, 0, new PointF((int)(DisplayRectangle.X + 7 + (poisoncount * 3)), (int)(DisplayRectangle.Y - 21)), Color.Black);
+                    DXManager.Sprite.Draw2D(DXManager.RadarTexture, Point.Empty, 0, new PointF((int)(DisplayRectangle.X + 8 + (poisoncount * 3)), (int)(DisplayRectangle.Y - 20)), Color.Green);
+                    poisoncount++;
                 }
-
-            return false;
-        }
-
-        public virtual bool Teleport(Map temp, Point location, bool effects = true, byte effectnumber = 0)
-        {
-            if (temp == null || !temp.ValidPoint(location)) return false;
-
-            CurrentMap.RemoveObject(this);
-            if (effects) Broadcast(new S.ObjectTeleportOut {ObjectID = ObjectID, Type = effectnumber});
-            Broadcast(new S.ObjectRemove {ObjectID = ObjectID});
-            
-            CurrentMap = temp;
-            CurrentLocation = location;
-
-            InTrapRock = false;
-
-            CurrentMap.AddObject(this);
-            BroadcastInfo();
-
-            if (effects) Broadcast(new S.ObjectTeleportIn { ObjectID = ObjectID, Type = effectnumber });
-            
-            BroadcastHealthChange();
-            
-            return true;
-        }
-
-        public virtual bool TeleportRandom(int attempts, int distance, Map map = null)
-        {
-            if (map == null) map = CurrentMap;
-            if (map.Cells == null) return false;
-            if (map.WalkableCells != null && map.WalkableCells.Count == 0) return false;
-
-            if (map.WalkableCells == null)
-            {
-                map.WalkableCells = new List<Point>();
-
-                for (int x = 0; x < map.Width; x++)
-                    for (int y = 0; y < map.Height; y++)
-                        if (map.Cells[x, y].Attribute == CellAttribute.Walk)
-                            map.WalkableCells.Add(new Point(x, y));
-
-                if (map.WalkableCells.Count == 0) return false;
-            }
-
-            int cellIndex = Envir.Random.Next(map.WalkableCells.Count);
-
-            return Teleport(map, map.WalkableCells[cellIndex]);
-        }
-
-        public Point GetRandomPoint(int attempts, int distance, Map map)
-        {
-            byte edgeoffset = 0;
-
-            if (map.Width < 150)
-            {
-                if (map.Height < 30) edgeoffset = 2;
-                else edgeoffset = 20;
-            }
-
-            for (int i = 0; i < attempts; i++)
-            {
-                Point location;
-
-                if (distance <= 0)
-                    location = new Point(edgeoffset + Envir.Random.Next(map.Width - edgeoffset), edgeoffset + Envir.Random.Next(map.Height - edgeoffset)); //Can adjust Random Range...
-                else
-                    location = new Point(CurrentLocation.X + Envir.Random.Next(-distance, distance + 1),
-                                         CurrentLocation.Y + Envir.Random.Next(-distance, distance + 1));
-
-
-                if (map.ValidPoint(location)) return location;
-            }
-
-            return new Point(0, 0);
-        }
-
-        public void BroadcastHealthChange()
-        {
-            if (Race != ObjectType.Player && Race != ObjectType.Monster) return;
-
-            byte time = Math.Min(byte.MaxValue, (byte)Math.Max(5, (RevTime - Envir.Time) / 1000));
-            Packet p = new S.ObjectHealth { ObjectID = ObjectID, Percent = PercentHealth, Expire = time };
-
-            if (Envir.Time < RevTime)
-            {
-                CurrentMap.Broadcast(p, CurrentLocation);
-                return;
-            }
-
-            if (Race == ObjectType.Monster && !AutoRev && Master == null) return;
-
-            if (Race == ObjectType.Player)
-            {
-                if (GroupMembers != null) //Send HP to group
+                if (Poison.HasFlag(PoisonType.Red))
                 {
-                    for (int i = 0; i < GroupMembers.Count; i++)
-                    {
-                        PlayerObject member = GroupMembers[i];
-
-                        if (this == member) continue;
-                        if (member.CurrentMap != CurrentMap || !Functions.InRange(member.CurrentLocation, CurrentLocation, Globals.DataRange)) continue;
-                        member.Enqueue(p);
-                    }
+                    DXManager.Sprite.Draw2D(DXManager.PoisonDotBackground, Point.Empty, 0, new PointF((int)(DisplayRectangle.X + 7 + (poisoncount * 3)), (int)(DisplayRectangle.Y - 21)), Color.Black);
+                    DXManager.Sprite.Draw2D(DXManager.RadarTexture, Point.Empty, 0, new PointF((int)(DisplayRectangle.X + 8 + (poisoncount * 3)), (int)(DisplayRectangle.Y - 20)), Color.Red);
+                    poisoncount++;
                 }
-
-                return;
-            }
-
-            if (Master != null && Master.Race == ObjectType.Player)
-            {
-                PlayerObject player = (PlayerObject)Master;
-
-                player.Enqueue(p);
-
-                if (player.GroupMembers != null) //Send pet HP to group
+                if (Poison.HasFlag(PoisonType.Bleeding))
                 {
-                    for (int i = 0; i < player.GroupMembers.Count; i++)
-                    {
-                        PlayerObject member = player.GroupMembers[i];
-
-                        if (player == member) continue;
-
-                        if (member.CurrentMap != CurrentMap || !Functions.InRange(member.CurrentLocation, CurrentLocation, Globals.DataRange)) continue;
-                        member.Enqueue(p);
-                    }
+                    DXManager.Sprite.Draw2D(DXManager.PoisonDotBackground, Point.Empty, 0, new PointF((int)(DisplayRectangle.X + 7 + (poisoncount * 3)), (int)(DisplayRectangle.Y - 21)), Color.Black);
+                    DXManager.Sprite.Draw2D(DXManager.RadarTexture, Point.Empty, 0, new PointF((int)(DisplayRectangle.X + 8 + (poisoncount * 3)), (int)(DisplayRectangle.Y - 20)), Color.DarkRed);
+                    poisoncount++;
+                }
+                if (Poison.HasFlag(PoisonType.Slow))
+                {
+                    DXManager.Sprite.Draw2D(DXManager.PoisonDotBackground, Point.Empty, 0, new PointF((int)(DisplayRectangle.X + 7 + (poisoncount * 3)), (int)(DisplayRectangle.Y - 21)), Color.Black);
+                    DXManager.Sprite.Draw2D(DXManager.RadarTexture, Point.Empty, 0, new PointF((int)(DisplayRectangle.X + 8 + (poisoncount * 3)), (int)(DisplayRectangle.Y - 20)), Color.Purple);
+                    poisoncount++;
+                }
+                if (Poison.HasFlag(PoisonType.Stun))
+                {
+                    DXManager.Sprite.Draw2D(DXManager.PoisonDotBackground, Point.Empty, 0, new PointF((int)(DisplayRectangle.X + 7 + (poisoncount * 3)), (int)(DisplayRectangle.Y - 21)), Color.Black);
+                    DXManager.Sprite.Draw2D(DXManager.RadarTexture, Point.Empty, 0, new PointF((int)(DisplayRectangle.X + 8 + (poisoncount * 3)), (int)(DisplayRectangle.Y - 20)), Color.Yellow);
+                    poisoncount++;
+                }
+                if (Poison.HasFlag(PoisonType.Frozen))
+                {
+                    DXManager.Sprite.Draw2D(DXManager.PoisonDotBackground, Point.Empty, 0, new PointF((int)(DisplayRectangle.X + 7 + (poisoncount * 3)), (int)(DisplayRectangle.Y - 21)), Color.Black);
+                    DXManager.Sprite.Draw2D(DXManager.RadarTexture, Point.Empty, 0, new PointF((int)(DisplayRectangle.X + 8 + (poisoncount * 3)), (int)(DisplayRectangle.Y - 20)), Color.Blue);
+                    //Effects.Add(new Effect(Libraries.Magic4, 2520, 20, 3200, this) { Repeat = true });
+                    poisoncount++;
+                }
+                if (Poison.HasFlag(PoisonType.Paralysis) || Poison.HasFlag(PoisonType.LRParalysis))
+                {
+                    DXManager.Sprite.Draw2D(DXManager.PoisonDotBackground, Point.Empty, 0, new PointF((int)(DisplayRectangle.X + 7 + (poisoncount * 3)), (int)(DisplayRectangle.Y - 21)), Color.Black);
+                    DXManager.Sprite.Draw2D(DXManager.RadarTexture, Point.Empty, 0, new PointF((int)(DisplayRectangle.X + 8 + (poisoncount * 3)), (int)(DisplayRectangle.Y - 20)), Color.Gray);
+                    poisoncount++;
+                }
+                if (Poison.HasFlag(PoisonType.DelayedExplosion))
+                {
+                    DXManager.Sprite.Draw2D(DXManager.PoisonDotBackground, Point.Empty, 0, new PointF((int)(DisplayRectangle.X + 7 + (poisoncount * 3)), (int)(DisplayRectangle.Y - 21)), Color.Black);
+                    DXManager.Sprite.Draw2D(DXManager.RadarTexture, Point.Empty, 0, new PointF((int)(DisplayRectangle.X + 8 + (poisoncount * 3)), (int)(DisplayRectangle.Y - 20)), Color.Orange);
+                    poisoncount++;
                 }
             }
-
-
-            if (EXPOwner != null && EXPOwner.Race == ObjectType.Player)
-            {
-                PlayerObject player = (PlayerObject)EXPOwner;
-
-                if (player.IsMember(Master)) return;
-                
-                player.Enqueue(p);
-
-                if (player.GroupMembers != null)
-                {
-                    for (int i = 0; i < player.GroupMembers.Count; i++)
-                    {
-                        PlayerObject member = player.GroupMembers[i];
-
-                        if (player == member) continue;
-                        if (member.CurrentMap != CurrentMap || !Functions.InRange(member.CurrentLocation, CurrentLocation, Globals.DataRange)) continue;
-                        member.Enqueue(p);
-                    }
-                }
-            }
-
         }
 
-        public void BroadcastDamageIndicator(DamageType type, int damage = 0)
-        {
-            Packet p = new S.DamageIndicator { ObjectID = ObjectID, Damage = damage, Type = type };
+        public abstract void DrawBehindEffects(bool effectsEnabled);
 
-            if (Race == ObjectType.Player)
-            {
-                PlayerObject player = (PlayerObject)this;
-                player.Enqueue(p);
-            }
-            Broadcast(p);
-        }
-
-        public abstract void Die();
-        public abstract int Pushed(MapObject pusher, MirDirection dir, int distance);
-
-        public bool IsMember(MapObject member)
-        {
-            if (member == this) return true;
-            if (GroupMembers == null || member == null) return false;
-
-            for (int i = 0; i < GroupMembers.Count; i++)
-                if (GroupMembers[i] == member) return true;
-
-            return false;
-        }
-
-        public abstract void SendHealth(PlayerObject player);
-
-        public bool InTrapRock
-        {
-            set
-            {
-                if (this is PlayerObject)
-                {
-                    PlayerObject player = (PlayerObject)this;
-                    player.Enqueue(new S.InTrapRock { Trapped = value });
-                }
-            }
-            get
-            {
-                Point checklocation;
-
-                for (int i = 0; i <= 6; i += 2)
-                {
-                    checklocation = Functions.PointMove(CurrentLocation, (MirDirection)i, 1);
-
-                    if (checklocation.X < 0) continue;
-                    if (checklocation.X >= CurrentMap.Width) continue;
-                    if (checklocation.Y < 0) continue;
-                    if (checklocation.Y >= CurrentMap.Height) continue;
-
-                    Cell cell = CurrentMap.GetCell(checklocation.X, checklocation.Y);
-                    if (!cell.Valid || cell.Objects == null) continue;
-
-                    for (int j = 0; j < cell.Objects.Count; j++)
-                    {
-                        MapObject ob = cell.Objects[j];
-                        switch (ob.Race)
-                        {
-                            case ObjectType.Monster:
-                                if (ob is TrapRock)
-                                {
-                                    TrapRock rock = (TrapRock)ob;
-                                    if (rock.Dead) continue;
-                                    if (rock.Target != this) continue;
-                                    if (!rock.Visible) continue;
-                                }
-                                else continue;
-
-                                return true;
-                            default:
-                                continue;
-                        }
-                    }
-                }
-                return false;
-            }
-        }
+        public abstract void DrawEffects(bool effectsEnabled);
 
     }
 
-    public class Poison
-    {
-        public MapObject Owner;
-        public PoisonType PType;
-        public int Value;
-        public long Duration, Time, TickTime, TickSpeed;
-
-        public Poison() { }
-
-        public Poison(BinaryReader reader)
-        {
-            Owner = null;
-            PType = (PoisonType)reader.ReadByte();
-            Value = reader.ReadInt32();
-            Duration = reader.ReadInt64();
-            Time = reader.ReadInt64();
-            TickTime = reader.ReadInt64();
-            TickSpeed = reader.ReadInt64();
-        }
-    }
-
-    public class Buff
-    {
-        public BuffType Type;
-        public MapObject Caster;
-        public bool Visible;
-        public uint ObjectID;
-        public long ExpireTime;
-        public int[] Values;
-        public bool Infinite;
-
-        public bool RealTime;
-        public DateTime RealTimeExpire;
-
-        public bool Paused;
-
-        public Buff() { }
-
-        public Buff(BinaryReader reader)
-        {
-            Type = (BuffType)reader.ReadByte();
-            Caster = null;
-            Visible = reader.ReadBoolean();
-            ObjectID = reader.ReadUInt32();
-            ExpireTime = reader.ReadInt64();
-
-            if (Envir.LoadVersion < 56)
-            {
-                Values = new int[] { reader.ReadInt32() };
-            }
-            else
-            {
-                Values = new int[reader.ReadInt32()];
-
-                for (int i = 0; i < Values.Length; i++)
-                {
-                    Values[i] = reader.ReadInt32();
-                }
-            }
-
-            Infinite = reader.ReadBoolean();
-        }
-
-        public void Save(BinaryWriter writer)
-        {
-            writer.Write((byte)Type);
-            writer.Write(Visible);
-            writer.Write(ObjectID);
-            writer.Write(ExpireTime);
-
-            writer.Write(Values.Length);
-            for (int i = 0; i < Values.Length; i++)
-            {
-                writer.Write(Values[i]);
-            }
-
-            writer.Write(Infinite);
-        }
-    }
 }

@@ -1,1506 +1,755 @@
-using Server.MirDatabase;
-using Server.MirEnvir;
-using Server.MirObjects;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
+using Client.MirControls;
+using Client.MirGraphics;
+using Client.MirScenes;
 using S = ServerPackets;
 
-namespace Server.MirObjects
+namespace Client.MirObjects
 {
-    public sealed class NPCObject : MapObject
+    class NPCObject : MapObject
     {
-
         public override ObjectType Race
         {
             get { return ObjectType.Merchant; }
         }
-
-        public const string
-            MainKey = "[@MAIN]",
-            BuyKey = "[@BUY]",
-            SellKey = "[@SELL]",
-            BuySellKey = "[@BUYSELL]",
-            RepairKey = "[@REPAIR]",
-            SRepairKey = "[@SREPAIR]",
-            RefineKey = "[@REFINE]",
-            RefineCheckKey = "[@REFINECHECK]",
-            RefineCollectKey = "[@REFINECOLLECT]",
-            ReplaceWedRingKey = "[@REPLACEWEDDINGRING]",
-            BuyBackKey = "[@BUYBACK]",
-            StorageKey = "[@STORAGE]",
-            ConsignKey = "[@CONSIGN]",
-            MarketKey = "[@MARKET]",
-            ConsignmentsKey = "[@CONSIGNMENT]",
-
-            TradeKey = "[TRADE]",
-            TypeKey = "[TYPES]",
-            QuestKey = "[QUESTS]",
-
-            GuildCreateKey = "[@CREATEGUILD]",
-            RequestWarKey = "[@REQUESTWAR]",
-            SendParcelKey = "[@SENDPARCEL]",
-            CollectParcelKey = "[@COLLECTPARCEL]",
-            AwakeningKey = "[@AWAKENING]",
-            DisassembleKey = "[@DISASSEMBLE]",
-            DowngradeKey = "[@DOWNGRADE]",
-            ResetKey = "[@RESET]",
-            PearlBuyKey = "[@PEARLBUY]",
-            BuyUsedKey = "[@BUYUSED]";
-
-
-        //public static Regex Regex = new Regex(@"[^\{\}]<.*?/(.*?)>");
-        public static Regex Regex = new Regex(@"<.*?/(\@.*?)>");
-        public NPCInfo Info;
-        private const long TurnDelay = 10000;
-        public long TurnTime, UsedGoodsTime, VisTime;
-        public bool NeedSave;
-        public bool Visible = true;
-        public string NPCName;
-
-        public List<UserItem> Goods = new List<UserItem>();
-        public List<UserItem> UsedGoods = new List<UserItem>();
-        public Dictionary<string, List<UserItem>> BuyBack = new Dictionary<string, List<UserItem>>();
-
-        public List<ItemType> Types = new List<ItemType>();
-        public List<NPCPage> NPCSections = new List<NPCPage>();
-        public List<QuestInfo> Quests = new List<QuestInfo>();
-
-        public Dictionary<int, bool> VisibleLog = new Dictionary<int, bool>();
-
-        public List<NPCPage> NPCPages = new List<NPCPage>();
-
-        public ConquestObject Conq;
-
-        public float PriceRate(PlayerObject player, bool baseRate = false)
+        public override bool Blocking
         {
-            if (Conq == null || baseRate) return Info.Rate / 100F;
-
-            if (player.MyGuild != null && player.MyGuild.Guildindex == Conq.Owner)
-                return Info.Rate / 100F;
-            else
-                return (((Info.Rate / 100F) * Conq.npcRate) + Info.Rate) / 100F;
+            get { return true; }
         }
 
-        public NPCObject(NPCInfo info)
+        public FrameSet Frames;
+        public Frame Frame;
+
+        public long QuestTime;
+        public int BaseIndex, FrameIndex, FrameInterval, 
+            EffectFrameIndex, EffectFrameInterval, QuestIndex;
+
+        public byte Image;
+        public QuestIcon QuestIcon = QuestIcon.None;
+
+        private bool _canChangeDir = true;
+
+        public bool CanChangeDir
         {
-            Info = info;
-            NameColour = Color.Lime;
-
-            if (!Info.IsDefault)
+            get { return _canChangeDir; }
+            set
             {
-                Direction = (MirDirection)Envir.Random.Next(3);
-                TurnTime = Envir.Time + Envir.Random.Next(100);
-
-                Spawned();
-            }
-
-            LoadInfo();
-            LoadGoods();
-        }
-
-        public void LoadInfo(bool clear = false)
-        {
-            if (clear) ClearInfo();
-
-            if (!Directory.Exists(Settings.NPCPath)) return;
-
-            string fileName = Path.Combine(Settings.NPCPath, Info.FileName + ".txt");
-
-            if (File.Exists(fileName))
-            {
-                List<string> lines = File.ReadAllLines(fileName).ToList();
-
-                lines = ParseInsert(lines);
-                lines = ParseInclude(lines);
-
-                if (Info.IsDefault)
-                    ParseDefault(lines);
-                else
-                    ParseScript(lines);
-            }
-            else
-                SMain.Enqueue(string.Format("File Not Found: {0}, NPC: {1}", Info.FileName, Info.Name));
-        }
-        public void ClearInfo()
-        {
-            Goods = new List<UserItem>();
-            Types = new List<ItemType>();
-            NPCPages = new List<NPCPage>();
-
-            if (Info.IsDefault)
-            {
-                SMain.Envir.CustomCommands.Clear();
-            }
-        }
-        public void LoadGoods()
-        {
-            string path = Settings.GoodsPath + Info.Index.ToString() + ".msd";
-
-            if (!File.Exists(path)) return;
-
-            using (FileStream stream = File.OpenRead(path))
-            {
-                using (BinaryReader reader = new BinaryReader(stream))
-                {
-                    int version = reader.ReadInt32();
-                    int count = version;
-                    int customversion = Envir.LoadCustomVersion;
-                    if (version == 9999)//the only real way to tell if the file was made before or after version code got added: assuming nobody had a config option to save more then 10000 sold items :p
-                    {
-                        version = reader.ReadInt32();
-                        customversion = reader.ReadInt32();
-                        count = reader.ReadInt32();
-                    }
-                    else
-                        version = Envir.LoadVersion;
-
-
-                    for (int k = 0; k < count; k++)
-                    {
-                        UserItem item = new UserItem(reader, version, customversion);
-                        if (SMain.Envir.BindItem(item))
-                            UsedGoods.Add(item);
-                    }
-                }
+                _canChangeDir = value;
+                if (value == false) Direction = 0;
             }
         }
 
-        private void ParseDefault(List<string> lines)
+        public List<ClientQuestInfo> Quests;
+
+
+        public NPCObject(uint objectID) : base(objectID)
         {
-            for (int i = 0; i < lines.Count; i++)
-            {
-                if (!lines[i].ToUpper().StartsWith("[@_")) continue;
-                if (Name == "DefaultNPC")
-                {
-                    if (lines[i].ToUpper().Contains("MAPCOORD"))
-                    {
-                        Regex regex = new Regex(@"\((.*?),([0-9]{1,3}),([0-9]{1,3})\)");
-                        Match match = regex.Match(lines[i]);
-
-                        if (!match.Success) continue;
-
-                        Map map = Envir.MapList.FirstOrDefault(m => m.Info.FileName == match.Groups[1].Value);
-
-                        if (map == null) continue;
-
-                        Point point = new Point(Convert.ToInt16(match.Groups[2].Value), Convert.ToInt16(match.Groups[3].Value));
-
-                        if (!map.Info.ActiveCoords.Contains(point))
-                        {
-                            map.Info.ActiveCoords.Add(point);
-                        }
-                    }
-
-                    if (lines[i].ToUpper().Contains("CUSTOMCOMMAND"))
-                    {
-                        Regex regex = new Regex(@"\((.*?)\)");
-                        Match match = regex.Match(lines[i]);
-
-                        if (!match.Success) continue;
-
-                        SMain.Envir.CustomCommands.Add(match.Groups[1].Value);
-                    }
-                }
-
-                else if (Name == "MonsterNPC")
-                {
-                    MonsterInfo MobInfo;
-                    if (lines[i].ToUpper().Contains("SPAWN"))
-                    {
-                        Regex regex = new Regex(@"\((.*?)\)");
-                        Match match = regex.Match(lines[i]);
-
-                        if (!match.Success) continue;
-                        MobInfo = Envir.GetMonsterInfo(Convert.ToInt16(match.Groups[1].Value));
-                        if (MobInfo == null) continue;
-                        MobInfo.HasSpawnScript = true;
-                    }
-                    if (lines[i].ToUpper().Contains("DIE"))
-                    {
-                        Regex regex = new Regex(@"\((.*?)\)");
-                        Match match = regex.Match(lines[i]);
-
-                        if (!match.Success) continue;
-                        MobInfo = Envir.GetMonsterInfo(Convert.ToInt16(match.Groups[1].Value));
-                        if (MobInfo == null) continue;
-                        MobInfo.HasDieScript = true;
-                    }
-                }
-
-                NPCPages.AddRange(ParsePages(lines, lines[i]));
-
-            }
         }
 
-        private void ParseScript(IList<string> lines)
+        public void Load(S.ObjectNPC info)
         {
-            NPCPages.AddRange(ParsePages(lines));
+            Name = info.Name;
+            NameColour = info.NameColour;
+            CurrentLocation = info.Location;
+            Direction = info.Direction;
+            Movement = info.Location;
+            MapLocation = info.Location;
+            GameScene.Scene.MapControl.AddObject(this);
 
-            ParseGoods(lines);
-            ParseTypes(lines);
-            ParseQuests(lines);
-        }
+            Quests = GameScene.QuestInfoList.Where(c => c.NPCIndex == ObjectID).ToList();
 
-        private List<string> ParseInsert(List<string> lines)
-        {
-            List<string> newLines = new List<string>();
+            Image = info.Image;
+            if (info.Image < Libraries.NPCs.Length)
+                BodyLibrary = Libraries.NPCs[info.Image];
 
-            for (int i = 0; i < lines.Count; i++)
+            switch (info.Image)
             {
-                if (!lines[i].ToUpper().StartsWith("#INSERT")) continue;
-
-                string[] split = lines[i].Split(' ');
-
-                if (split.Length < 2) continue;
-
-                string path = Path.Combine(Settings.EnvirPath, split[1].Substring(1, split[1].Length - 2));
-
-                if (!File.Exists(path))
-                    SMain.Enqueue(string.Format("File Not Found: {0}, NPC: {1}", path, Info.Name));
-                else
-                    newLines = File.ReadAllLines(path).ToList();
-
-                lines.AddRange(newLines);
-            }
-
-            lines.RemoveAll(str => str.ToUpper().StartsWith("#INSERT"));
-
-            return lines;
-        }
-
-        private List<string> ParseInclude(List<string> lines)
-        {
-            for (int i = 0; i < lines.Count; i++)
-            {
-                if (!lines[i].ToUpper().StartsWith("#INCLUDE")) continue;
-
-                string[] split = lines[i].Split(' ');
-
-                string path = Path.Combine(Settings.EnvirPath, split[1].Substring(1, split[1].Length - 2));
-                string page = ("[" + split[2] + "]").ToUpper();
-
-                bool start = false, finish = false;
-
-                var parsedLines = new List<string>();
-
-                if (!File.Exists(path)) return parsedLines;
-                IList<string> extLines = File.ReadAllLines(path);
-
-                for (int j = 0; j < extLines.Count; j++)
-                {
-                    if (!extLines[j].ToUpper().StartsWith(page)) continue;
-
-                    for (int x = j + 1; x < extLines.Count; x++)
-                    {
-                        if (extLines[x].Trim() == ("{"))
-                        {
-                            start = true;
-                            continue;
-                        }
-
-                        if (extLines[x].Trim() == ("}"))
-                        {
-                            finish = true;
-                            break;
-                        }
-
-                        parsedLines.Add(extLines[x]);
-                    }
-                }
-
-                if (start && finish)
-                {
-                    lines.InsertRange(i + 1, parsedLines);
-                    parsedLines.Clear();
-                }
-            }
-
-            lines.RemoveAll(str => str.ToUpper().StartsWith("#INCLUDE"));
-
-            return lines;
-        }
-
-        private List<NPCPage> ParsePages(IList<string> lines, string key = MainKey)
-        {
-            List<NPCPage> pages = new List<NPCPage>();
-            List<string> buttons = new List<string>();
-
-            NPCPage page = ParsePage(lines, key);
-            pages.Add(page);
-
-            buttons.AddRange(page.Buttons);
-
-            for (int i = 0; i < buttons.Count; i++)
-            {
-                string section = buttons[i];
-
-                bool match = pages.Any(t => t.Key.ToUpper() == section.ToUpper());
-
-                if (match) continue;
-
-                page = ParsePage(lines, section);
-                buttons.AddRange(page.Buttons);
-
-                pages.Add(page);
-            }
-
-            return pages;
-        }
-
-        private NPCPage ParsePage(IList<string> scriptLines, string sectionName)
-        {
-            bool nextPage = false, nextSection = false;
-
-            List<string> lines = scriptLines.Where(x => !string.IsNullOrEmpty(x)).ToList();
-
-            NPCPage Page = new NPCPage(sectionName);
-
-            //Cleans arguments out of search page name
-            string tempSectionName = Page.ArgumentParse(sectionName);
-
-            //parse all individual pages in a script, defined by sectionName
-            for (int i = 0; i < lines.Count; i++)
-            {
-                string line = lines[i];
-
-                if (line.StartsWith(";")) continue;
-
-                if (!lines[i].ToUpper().StartsWith(tempSectionName.ToUpper())) continue;
-
-                if(lines[i] == "[@Market]")
-                {
-
-                }
-
-                List<string> segmentLines = new List<string>();
-
-                nextPage = false;
-
-                //Found a page, now process that page and split it into segments
-                for (int j = i + 1; j < lines.Count; j++)
-                {
-                    string nextLine = lines[j];
-
-                    if (j < lines.Count - 1)
-                        nextLine = lines[j + 1];
-                    else
-                        nextLine = "";
-
-                    if (nextLine.StartsWith("[") && nextLine.EndsWith("]"))
-                    {
-                        nextPage = true;
-                    }
-
-                    else if (nextLine.StartsWith("#IF"))
-                    {
-                        nextSection = true;
-                    }
-
-                    if (nextSection || nextPage)
-                    {
-                        segmentLines.Add(lines[j]);
-
-                        //end of segment, so need to parse it and put into the segment list within the page
-                        if (segmentLines.Count > 0)
-                        {
-                            NPCSegment segment = ParseSegment(Page, segmentLines);
-
-                            List<string> currentButtons = new List<string>();
-                            currentButtons.AddRange(segment.Buttons);
-                            currentButtons.AddRange(segment.ElseButtons);
-                            currentButtons.AddRange(segment.GotoButtons);
-
-                            Page.Buttons.AddRange(currentButtons);
-                            Page.SegmentList.Add(segment);
-                            segmentLines.Clear();
-
-                            nextSection = false;
-                        }
-
-                        if (nextPage) break;
-
-                        continue;
-                    }
-
-                    segmentLines.Add(lines[j]);
-                }
-
-                //bottom of script reached, add all lines found to new segment
-                if (segmentLines.Count > 0)
-                {
-                    NPCSegment segment = ParseSegment(Page, segmentLines);
-
-                    List<string> currentButtons = new List<string>();
-                    currentButtons.AddRange(segment.Buttons);
-                    currentButtons.AddRange(segment.ElseButtons);
-                    currentButtons.AddRange(segment.GotoButtons);
-
-                    Page.Buttons.AddRange(currentButtons);
-                    Page.SegmentList.Add(segment);
-                    segmentLines.Clear();
-                }
-
-                return Page;
-            }
-
-            return Page;
-        }
-
-        private NPCSegment ParseSegment(NPCPage page, IEnumerable<string> scriptLines)
-        {
-            List<string>
-                checks = new List<string>(),
-                acts = new List<string>(),
-                say = new List<string>(),
-                buttons = new List<string>(),
-                elseSay = new List<string>(),
-                elseActs = new List<string>(),
-                elseButtons = new List<string>(),
-                gotoButtons = new List<string>();
-
-            List<string> lines = scriptLines.ToList();
-            List<string> currentSay = say, currentButtons = buttons;
-
-            for (int i = 0; i < lines.Count; i++)
-            {
-                if (string.IsNullOrEmpty(lines[i])) continue;
-
-                if (lines[i].StartsWith(";")) continue;
-
-                if (lines[i].StartsWith("#"))
-                {
-                    string[] action = lines[i].Remove(0, 1).ToUpper().Trim().Split(' ');
-                    switch (action[0])
-                    {
-                        case "IF":
-                            currentSay = checks;
-                            currentButtons = null;
-                            continue;
-                        case "SAY":
-                            currentSay = say;
-                            currentButtons = buttons;
-                            continue;
-                        case "ACT":
-                            currentSay = acts;
-                            currentButtons = gotoButtons;
-                            continue;
-                        case "ELSESAY":
-                            currentSay = elseSay;
-                            currentButtons = elseButtons;
-                            continue;
-                        case "ELSEACT":
-                            currentSay = elseActs;
-                            currentButtons = gotoButtons;
-                            continue;
-                        default:
-                            throw new NotImplementedException();
-                    }
-                }
-
-                if (lines[i].StartsWith("[") && lines[i].EndsWith("]")) break;
-
-                if (currentButtons != null)
-                {
-                    Match match = Regex.Match(lines[i]);
-                    while (match.Success)
-                    {
-                        string argu = match.Groups[1].Captures[0].Value;
-
-                        currentButtons.Add(string.Format("[{0}]", argu));//ToUpper()
-                        match = match.NextMatch();
-                    }
-
-                    //Check if line has a goto command
-                    var parts = lines[i].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-                    if (parts.Count() > 1)
-                        switch (parts[0].ToUpper())
-                        {
-                            case "GOTO":
-                            case "GROUPGOTO":
-                                gotoButtons.Add(string.Format("[{0}]", parts[1].ToUpper()));
-                                break;
-                            case "TIMERECALL":
-                                if (parts.Length > 2)
-                                    gotoButtons.Add(string.Format("[{0}]", parts[2].ToUpper()));
-                                break;
-                            case "TIMERECALLGROUP":
-                                if (parts.Length > 2)
-                                    gotoButtons.Add(string.Format("[{0}]", parts[2].ToUpper()));
-                                break;
-                            case "DELAYGOTO":
-                                gotoButtons.Add(string.Format("[{0}]", parts[2].ToUpper()));
-                                break;
-                        }
-                }
-                
-                currentSay.Add(lines[i].TrimEnd());
+                #region 4 frames + direction + harvest(10 frames)
+                default:
+                    Frames = FrameSet.NPCs[0];
+                    break;
+                #endregion
+
+                #region 4 frames + direction + harvest(20 frames)
+                case 23:
+                    Frames = FrameSet.NPCs[1];
+                    break;
+                #endregion
+
+                #region 4 frames
+                case 62:
+                case 63:
+                case 64:
+                case 65:
+                case 66:
+                case 159:
+                    Frames = FrameSet.NPCs[2];
+                    CanChangeDir = false;
+                    break;
+                #endregion
+
+                #region 4 frames + direction
+                case 24:
+                case 25:
+                case 27:
+                case 32:
+                case 52:
+                case 61:
+                case 68:
+                case 69:
+                case 70:
+                case 75:
+                case 83:
+                case 90:
+                case 91:
+                case 92:
+                case 93:
+                case 94:
+                case 95:
+                case 100:
+                case 101:
+                case 111:
+                case 112:
+                case 115:
+                case 116:
+                case 117:
+                case 118:
+                case 120:
+                case 141:
+                case 142:
+                case 151:
+                case 152:
+                case 163:
+                case 178:
+                case 186:
+                case 187:
+                case 188:
+                case 189:
+                case 190:
+                    Frames = FrameSet.NPCs[2];
+                    break;
+                #endregion
+
+                #region 12 frames + animation(10 frames) (large tele)
+                case 33:
+                case 34:
+                    Frames = FrameSet.NPCs[3];
+                    CanChangeDir = false;
+                    break;
+                #endregion
+
+                #region 2 frames + animation(9 frames) (small tele)
+                case 79:
+                case 80:
+                    Frames = FrameSet.NPCs[4];
+                    CanChangeDir = false;
+                    break;
+                #endregion
+
+                #region 2 frame + animation(6 frames)
+                case 85:
+                case 86:
+                    Frames = FrameSet.NPCs[5];
+                    CanChangeDir = false;
+                    break;
+                #endregion
+
+                #region 1 frame
+                case 35:
+                case 36:
+                case 37:
+                case 38:
+                case 39:
+                case 40:
+                case 44:
+                case 45:
+                case 46:
+                case 50:
+                case 51:
+                case 54:
+                case 56:
+                case 67:
+                case 71:
+                case 72:
+                case 73:
+                case 76:
+                case 77:
+                case 96:
+                case 97:
+                case 98:
+                case 99:
+                case 102:
+                case 103:
+                case 104:
+                case 105:
+                case 106:
+                case 107:
+                case 108:
+                case 109:
+                case 113:
+                case 114:
+                case 124:
+                case 125:
+                case 126:
+                case 127:
+                case 128:
+                case 129:
+                case 130:
+                case 131:
+                case 132:
+                case 133:
+                case 134:
+                case 135:
+                case 136:
+                case 137:
+                case 138:
+                case 139:
+                case 140:
+                case 144:
+                case 145:
+                case 146:
+                case 147:
+                case 148:
+                case 149:
+                case 150:
+                case 156:
+                case 157:
+                case 229:
+                case 230:
+                case 231:
+                case 232:
+                case 233:
+                case 234:
+                case 235:
+                case 236:
+                case 237:
+                case 238:
+                    Frames = FrameSet.NPCs[6];
+                    CanChangeDir = false;
+                    break;
+                #endregion
+
+                #region 10 frames
+                case 53:
+                case 153:
+                case 158:
+                case 161:
+                case 162:
+                case 123:
+                case 175:
+                case 176:
+                    Frames = FrameSet.NPCs[7];
+                    CanChangeDir = false;
+                    break;
+                #endregion
+
+                #region 12 frames
+                case 55:
+                    Frames = FrameSet.NPCs[8];
+                    CanChangeDir = false;
+                    break;
+                #endregion
+
+                #region 8 frames
+                case 87:
+                case 88:
+                case 89:
+                case 154:
+                    Frames = FrameSet.NPCs[9];
+                    CanChangeDir = false;
+                    break;
+                #endregion
+
+                #region 6 frames + direction
+                case 110:
+                case 119:
+                case 122:
+                case 143:
+                case 174:
+                case 185:
+                case 201:
+                case 202:
+                case 203:
+                case 204:
+                case 205:
+                case 206:
+                case 207:
+                case 209:
+                case 210:
+                case 211:
+                case 212:
+                case 215:
+                case 216:
+                case 217:
+                case 218:
+                case 219:
+                case 220:
+                case 221:
+                case 222:
+                case 223:
+                case 224:
+                case 225:
+                case 226:
+                case 227:
+                    Frames = FrameSet.NPCs[10];
+                    break;
+                #endregion
+
+                #region 2 frame + animation(8 frames)
+                case 155:
+                    Frames = FrameSet.NPCs[11];
+                    CanChangeDir = false;
+                    break;
+                #endregion
+
+                #region 11 frames
+                case 164:
+                case 165:
+                case 166:
+                case 167:
+                case 168:
+                case 169:
+                case 170:
+                case 171:
+                case 172:
+                case 173:
+                    Frames = FrameSet.NPCs[12];
+                    CanChangeDir = false;
+                    break;
+                #endregion
+
+                #region 20 frames + animation(20 frames)
+                case 59:
+                    Frames = FrameSet.NPCs[13];
+                    CanChangeDir = false;
+                    break;
+                #endregion
+
+                #region 4 frames + direction + animation(4 frames)
+                case 81:
+                case 82:
+                    Frames = FrameSet.NPCs[14];
+                    break;
+                #endregion
+
+                #region 4 frames + harvest(6 frames)
+                case 60:
+                case 183:
+                    Frames = FrameSet.NPCs[15];
+                    break;
+                #endregion
+
+                #region 6 frames + animation(12 frames)
+                case 48:
+                    Frames = FrameSet.NPCs[16];
+                    CanChangeDir = false;
+                    break;
+                #endregion
+
+                #region 9 frames + direction
+                case 177:
+                case 213:
+                    Frames = FrameSet.NPCs[17];
+                    break;
+                #endregion
+
+                #region 5 frames + direction
+                case 179:
+                case 180:
+                case 181:
+                case 184:
+                    Frames = FrameSet.NPCs[18];
+                    break;
+                #endregion
+
+                #region 7 frames + direction + harvest(10 frames)
+                case 182:
+                    Frames = FrameSet.NPCs[19];
+                    break;
+                #endregion
+
+                #region 1 frame + animation(9 frames)
+                case 191:
+                    Frames = FrameSet.NPCs[20];
+                    CanChangeDir = false;
+                    break;
+                #endregion
             }
 
-            NPCSegment segment = new NPCSegment(page, say, buttons, elseSay, elseButtons, gotoButtons);
+            Light = 10;
+            BaseIndex = 0;
 
-            for (int i = 0; i < checks.Count; i++)
-                segment.ParseCheck(checks[i]);
-
-            for (int i = 0; i < acts.Count; i++)
-                segment.ParseAct(segment.ActList, acts[i]);
-
-            for (int i = 0; i < elseActs.Count; i++)
-                segment.ParseAct(segment.ElseActList, elseActs[i]);
-
-
-            currentButtons = new List<string>();
-            currentButtons.AddRange(buttons);
-            currentButtons.AddRange(elseButtons);
-            currentButtons.AddRange(gotoButtons);
-
-            return segment;
-        }
-
-        private void ParseTypes(IList<string> lines)
-        {
-            for (int i = 0; i < lines.Count; i++)
-            {
-                if (!lines[i].ToUpper().StartsWith(TypeKey)) continue;
-
-                while (++i < lines.Count)
-                {
-                    if (String.IsNullOrEmpty(lines[i])) continue;
-
-                    int index;
-                    if (!int.TryParse(lines[i], out index)) return;
-                    Types.Add((ItemType)index);
-                }
-            }
-        }
-        private void ParseGoods(IList<string> lines)
-        {
-            for (int i = 0; i < lines.Count; i++)
-            {
-                if (!lines[i].ToUpper().StartsWith(TradeKey)) continue;
-
-                while (++i < lines.Count)
-                {
-                    if (lines[i].StartsWith("[")) return;
-                    if (String.IsNullOrEmpty(lines[i])) continue;
-
-                    var data = lines[i].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-                    ItemInfo info = SMain.Envir.GetItemInfo(data[0]);
-                    if (info == null)
-                        continue;
-                    UserItem goods = new UserItem(info) { CurrentDura = info.Durability, MaxDura = info.Durability };
-                    if (goods == null || Goods.Contains(goods))
-                    {
-                        SMain.Enqueue(string.Format("Could not find Item: {0}, File: {1}", lines[i], Info.FileName));
-                        continue;
-                    }
-                    uint count = 1;
-                    if (data.Length == 2)
-                        uint.TryParse(data[1], out count);
-                    goods.Count = count;
-                    goods.UniqueID = (ulong)i;
-
-                    Goods.Add(goods);
-                }
-            }
-        }
-        private void ParseQuests(IList<string> lines)
-        {
-            for (int i = 0; i < lines.Count; i++)
-            {
-                if (!lines[i].ToUpper().StartsWith(QuestKey)) continue;
-
-                while (++i < lines.Count)
-                {
-                    if (lines[i].StartsWith("[")) return;
-                    if (String.IsNullOrEmpty(lines[i])) continue;
-
-                    int index;
-
-                    int.TryParse(lines[i], out index);
-
-                    if (index == 0) continue;
-
-                    QuestInfo info = SMain.Envir.GetQuestInfo(Math.Abs(index));
-
-                    if (info == null) return;
-
-                    if (index > 0)
-                        info.NpcIndex = ObjectID;
-                    else
-                        info.FinishNpcIndex = ObjectID;
-
-                    if (Quests.All(x => x != info))
-                        Quests.Add(info);
-                }
-            }
-        }
-
-        public void Call(MonsterObject Monster, string key)//run a semi limited npc script (wont let you do stuff like checkgroup/guild etc)
-        {
-            key = key.ToUpper();
-
-            for (int i = 0; i < NPCPages.Count; i++)
-            {
-                NPCPage page = NPCPages[i];
-                if (!String.Equals(page.Key, key, StringComparison.CurrentCultureIgnoreCase)) continue;
-
-                foreach (NPCSegment segment in page.SegmentList)
-                {
-                    if (page.BreakFromSegments)
-                    {
-                        page.BreakFromSegments = false;
-                        break;
-                    }
-
-                    ProcessSegment(Monster, page, segment);
-                }
-            }
-        }
-
-        public void Call(string key) //run a verry limited npc script (should really only be used to spawn mobs or something)
-        {
-            key = key.ToUpper();
-
-            for (int i = 0; i < NPCPages.Count; i++)
-            {
-                NPCPage page = NPCPages[i];
-                if (!String.Equals(page.Key, key, StringComparison.CurrentCultureIgnoreCase)) continue;
-
-                foreach (NPCSegment segment in page.SegmentList)
-                {
-                    if (page.BreakFromSegments)
-                    {
-                        page.BreakFromSegments = false;
-                        break;
-                    }
-
-                    ProcessSegment(page, segment);
-                }
-            }
-        }
-
-
-        public void Call(PlayerObject player, string key)
-        {
-            key = key.ToUpper();
-
-            if (!player.NPCDelayed)
-            {
-                if (key != MainKey) // && ObjectID != player.DefaultNPC.ObjectID
-                {
-                    if (player.NPCID != ObjectID) return;
-
-                    bool found = false;
-
-                    foreach (NPCSegment segment in player.NPCPage.SegmentList)
-                    {
-                        bool result;
-                        if (!player.NPCSuccess.TryGetValue(segment, out result)) break; //no result for segement ?
-
-                        if ((result ? segment.Buttons : segment.ElseButtons).Any(s => s.ToUpper() == key)) //key is already uppercase
-                            found = true;
-                    }
-
-                    if (!found)
-                    {
-                        SMain.Enqueue(string.Format("Player: {0} was prevented access to NPC key: '{1}' ", player.Name, key));
-                        return;
-                    }
-                }
-            }
-            else
-            {
-                player.NPCDelayed = false;
-            }
-
-            if (key.StartsWith("[@@") && player.NPCInputStr == string.Empty)
-            {
-                //send off packet to request input
-                player.Enqueue(new S.NPCRequestInput { NPCID = ObjectID, PageName = key });
-                return;
-            }
-
-            for (int i = 0; i < NPCPages.Count; i++)
-            {
-                NPCPage page = NPCPages[i];
-                if (!String.Equals(page.Key, key, StringComparison.CurrentCultureIgnoreCase)) continue;
-
-                player.NPCSpeech = new List<string>();
-                player.NPCSuccess.Clear();
-
-                foreach (NPCSegment segment in page.SegmentList)
-                {
-                    if (page.BreakFromSegments)
-                    {
-                        page.BreakFromSegments = false;
-                        break;
-                    }
-
-                    ProcessSegment(player, page, segment);
-                }
-
-                Response(player, page);
-            }
-
-
-            player.NPCInputStr = string.Empty;
-        }
-
-        private void Response(PlayerObject player, NPCPage page)
-        {
-            player.Enqueue(new S.NPCResponse { Page = player.NPCSpeech });
-
-            ProcessSpecial(player, page);
-        }
-
-        private void ProcessSegment(PlayerObject player, NPCPage page, NPCSegment segment)
-        {
-            player.NPCID = ObjectID;
-            player.NPCSuccess.Add(segment, segment.Check(player));
-            player.NPCPage = page;
-        }
-
-        private void ProcessSegment(MonsterObject Monster, NPCPage page, NPCSegment segment)
-        {
-            segment.Check(Monster);
-        }
-
-        private void ProcessSegment(NPCPage page, NPCSegment segment)
-        {
-            segment.Check();
-        }
-
-
-        private void ProcessSpecial(PlayerObject player, NPCPage page)
-        {
-            List<UserItem> allGoods = new List<UserItem>();
-
-            switch (page.Key.ToUpper())
-            {
-                case BuyKey:
-                    for (int i = 0; i < Goods.Count; i++)
-                        player.CheckItem(Goods[i]);
-
-                    player.Enqueue(new S.NPCGoods { List = Goods, Rate = PriceRate(player) });
-                    break;
-                case SellKey:
-                    player.Enqueue(new S.NPCSell());
-                    break;
-                case BuySellKey:
-                    for (int i = 0; i < Goods.Count; i++)
-                        player.CheckItem(Goods[i]);
-
-                    player.Enqueue(new S.NPCGoods { List = Goods, Rate = PriceRate(player) });
-                    player.Enqueue(new S.NPCSell());
-                    break;
-                case RepairKey:
-                    player.Enqueue(new S.NPCRepair { Rate = PriceRate(player) });
-                    break;
-                case SRepairKey:
-                    player.Enqueue(new S.NPCSRepair { Rate = PriceRate(player) });
-                    break;
-                case RefineKey:
-                    if (player.Info.CurrentRefine != null)
-                    {
-                        player.ReceiveChat("You're already refining an item.", ChatType.System);
-                        player.Enqueue(new S.NPCRefine { Rate = (Settings.RefineCost), Refining = true });
-                        break;
-                    }
-                    else
-                        player.Enqueue(new S.NPCRefine { Rate = (Settings.RefineCost), Refining = false });
-                    break;
-                case RefineCheckKey:
-                    player.Enqueue(new S.NPCCheckRefine());
-                    break;
-                case RefineCollectKey:
-                    player.CollectRefine();
-                    break;
-                case ReplaceWedRingKey:
-                    player.Enqueue(new S.NPCReplaceWedRing { Rate = Settings.ReplaceWedRingCost });
-                    break;
-                case StorageKey:
-                    player.SendStorage();
-                    player.Enqueue(new S.NPCStorage());
-                    break;
-                case BuyBackKey:
-                    if (!BuyBack.ContainsKey(player.Name)) BuyBack[player.Name] = new List<UserItem>();
-
-                    for (int i = 0; i < BuyBack[player.Name].Count; i++)
-                    {
-                        player.CheckItem(BuyBack[player.Name][i]);
-                    }
-
-                    player.Enqueue(new S.NPCGoods { List = BuyBack[player.Name], Rate = PriceRate(player) });
-                    break;
-                case BuyUsedKey:
-                    for (int i = 0; i < UsedGoods.Count; i++)
-                        player.CheckItem(UsedGoods[i]);
-
-                    player.Enqueue(new S.NPCGoods { List = UsedGoods, Rate = PriceRate(player) });
-                    break;
-                case ConsignKey:
-                    player.Enqueue(new S.NPCConsign());
-                    break;
-                case MarketKey:
-                    player.UserMatch = false;
-                    player.GetMarket(string.Empty, ItemType.Nothing);
-                    break;
-                case ConsignmentsKey:
-                    player.UserMatch = true;
-                    player.GetMarket(string.Empty, ItemType.Nothing);
-                    break;
-                case GuildCreateKey:
-                    if (player.Info.Level < Settings.Guild_RequiredLevel)
-                    {
-                        player.ReceiveChat(String.Format("You have to be at least level {0} to create a guild.", Settings.Guild_RequiredLevel), ChatType.System);
-                    }
-                    if (player.MyGuild == null)
-                    {
-                        player.CanCreateGuild = true;
-                        player.Enqueue(new S.GuildNameRequest());
-                    }
-                    else
-                        player.ReceiveChat("You are already part of a guild.", ChatType.System);
-                    break;
-                case RequestWarKey:
-                    if (player.MyGuild != null)
-                    {
-                        if (player.MyGuildRank != player.MyGuild.Ranks[0])
-                        {
-                            player.ReceiveChat("You must be the leader to request a war.", ChatType.System);
-                            return;
-                        }
-                        player.Enqueue(new S.GuildRequestWar());
-                    }
-                    else
-                    {
-                        player.ReceiveChat("You are not in a guild.", ChatType.System);
-                    }
-                    break;
-                case SendParcelKey:
-                    player.Enqueue(new S.MailSendRequest());
-                    break;
-                case CollectParcelKey:
-
-                    sbyte result = 0;
-
-                    if (player.GetMailAwaitingCollectionAmount() < 1)
-                    {
-                        result = -1;
-                    }
-                    else
-                    {
-                        foreach (var mail in player.Info.Mail)
-                        {
-                            if (mail.Parcel) mail.Collected = true;
-                        }
-                    }
-                    player.Enqueue(new S.ParcelCollected { Result = result });
-                    player.GetMail();
-                    break;
-                case AwakeningKey:
-                    player.Enqueue(new S.NPCAwakening());
-                    break;
-                case DisassembleKey:
-                    player.Enqueue(new S.NPCDisassemble());
-                    break;
-                case DowngradeKey:
-                    player.Enqueue(new S.NPCDowngrade());
-                    break;
-                case ResetKey:
-                    player.Enqueue(new S.NPCReset());
-                    break;
-                case PearlBuyKey:
-                    for (int i = 0; i < Goods.Count; i++)
-                        player.CheckItem(Goods[i]);
-
-                    player.Enqueue(new S.NPCPearlGoods { List = Goods, Rate = PriceRate(player) });
-                    break;
-            }
-        }
-
-        #region overrides
-        public override void Process(DelayedAction action)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override bool IsAttackTarget(PlayerObject attacker)
-        {
-            // throw new NotSupportedException();
-            return false;
-        }
-        public override bool IsFriendlyTarget(PlayerObject ally)
-        {
-            throw new NotSupportedException();
-        }
-        public override bool IsFriendlyTarget(MonsterObject ally)
-        {
-            throw new NotSupportedException();
-        }
-        public override bool IsAttackTarget(MonsterObject attacker)
-        {
-            //   throw new NotSupportedException();
-            return false;
-        }
-
-        public override int Attacked(PlayerObject attacker, int damage, DefenceType type = DefenceType.ACAgility, bool damageWeapon = true)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override int Attacked(MonsterObject attacker, int damage, DefenceType type = DefenceType.ACAgility)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override int Struck(int damage, DefenceType type = DefenceType.ACAgility)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override void SendHealth(PlayerObject player)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override void Die()
-        {
-            throw new NotSupportedException();
-        }
-
-        public override int Pushed(MapObject pusher, MirDirection dir, int distance)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override ushort Level
-        {
-            get { throw new NotSupportedException(); }
-            set { throw new NotSupportedException(); }
-        }
-
-        public override void ReceiveChat(string text, ChatType type)
-        {
-            throw new NotSupportedException();
-        }
-
-        public void Turn(MirDirection dir)
-        {
-            Direction = dir;
-
-            Broadcast(new S.ObjectTurn { ObjectID = ObjectID, Direction = Direction, Location = CurrentLocation });
+            SetAction();
         }
 
         public override void Process()
         {
-            base.Process();
+            bool update = CMain.Time >= NextMotion || GameScene.CanMove;
 
-            if (Envir.Time > TurnTime)
+            ProcessFrames();
+
+            if (update)
             {
-                TurnTime = Envir.Time + TurnDelay;
-                Turn((MirDirection)Envir.Random.Next(3));
+                UpdateBestQuestIcon();
             }
 
-            if (Envir.Time > UsedGoodsTime)
+            if (Frame == null)
             {
-                UsedGoodsTime = SMain.Envir.Time + (Settings.Minute * Settings.GoodsBuyBackTime);
-                ProcessGoods();
-            }
-
-            if (Envir.Time > VisTime)
-            {
-                VisTime = Envir.Time + (Settings.Minute);
-
-                if (Info.DayofWeek != "" && Info.DayofWeek != DateTime.Now.DayOfWeek.ToString())
-                {
-                    if (Visible) Hide();
-                }
-                else
-                {
-
-                    int StartTime = ((Info.HourStart * 60) + Info.MinuteStart);
-                    int FinishTime = ((Info.HourEnd * 60) + Info.MinuteEnd);
-                    int CurrentTime = ((DateTime.Now.Hour * 60) + DateTime.Now.Minute);
-
-                    if (Info.TimeVisible)
-                        if (StartTime > CurrentTime || FinishTime <= CurrentTime)
-                        {
-                            if (Visible) Hide();
-                        }
-                        else if (StartTime <= CurrentTime && FinishTime > CurrentTime)
-                        {
-                            if (!Visible) Show();
-                        }
-
-                }
-            }
-        }
-        public void ProcessGoods(bool clear = false)
-        {
-            if (!Settings.GoodsOn) return;
-
-            List<UserItem> deleteList = new List<UserItem>();
-
-            foreach (var playerGoods in BuyBack)
-            {
-                List<UserItem> items = playerGoods.Value;
-
-                for (int i = 0; i < items.Count; i++)
-                {
-                    UserItem item = items[i];
-
-                    if (DateTime.Compare(item.BuybackExpiryDate.AddMinutes(Settings.GoodsBuyBackTime), Envir.Now) <= 0 || clear)
-                    {
-                        deleteList.Add(BuyBack[playerGoods.Key][i]);
-
-                        if (UsedGoods.Count >= Settings.GoodsMaxStored)
-                        {
-                            UserItem nonAddedItem = UsedGoods.FirstOrDefault(e => e.IsAdded == false);
-
-                            if (nonAddedItem != null)
-                            {
-                                UsedGoods.Remove(nonAddedItem);
-                            }
-                            else
-                            {
-                                UsedGoods.RemoveAt(0);
-                            }
-                        }
-
-                        UsedGoods.Add(item);
-                        NeedSave = true;
-                    }
-                }
-
-                for (int i = 0; i < deleteList.Count; i++)
-                {
-                    BuyBack[playerGoods.Key].Remove(deleteList[i]);
-                }
-            }
-        }
-
-        public override void SetOperateTime()
-        {
-            long time = Envir.Time + 2000;
-
-            if (TurnTime < time && TurnTime > Envir.Time)
-                time = TurnTime;
-
-            if (OwnerTime < time && OwnerTime > Envir.Time)
-                time = OwnerTime;
-
-            if (ExpireTime < time && ExpireTime > Envir.Time)
-                time = ExpireTime;
-
-            if (PKPointTime < time && PKPointTime > Envir.Time)
-                time = PKPointTime;
-
-            if (LastHitTime < time && LastHitTime > Envir.Time)
-                time = LastHitTime;
-
-            if (EXPOwnerTime < time && EXPOwnerTime > Envir.Time)
-                time = EXPOwnerTime;
-
-            if (BrownTime < time && BrownTime > Envir.Time)
-                time = BrownTime;
-
-            for (int i = 0; i < ActionList.Count; i++)
-            {
-                if (ActionList[i].Time >= time && ActionList[i].Time > Envir.Time) continue;
-                time = ActionList[i].Time;
-            }
-
-            for (int i = 0; i < PoisonList.Count; i++)
-            {
-                if (PoisonList[i].TickTime >= time && PoisonList[i].TickTime > Envir.Time) continue;
-                time = PoisonList[i].TickTime;
-            }
-
-            for (int i = 0; i < Buffs.Count; i++)
-            {
-                if (Buffs[i].ExpireTime >= time && Buffs[i].ExpireTime > Envir.Time) continue;
-                time = Buffs[i].ExpireTime;
-            }
-
-
-            if (OperateTime <= Envir.Time || time < OperateTime)
-                OperateTime = time;
-        }
-
-        public void Hide()
-        {
-            CurrentMap.Broadcast(new S.ObjectRemove { ObjectID = ObjectID }, CurrentLocation);
-            Visible = false;
-        }
-
-        public void Show()
-        {
-            Visible = true;
-            for (int i = CurrentMap.Players.Count - 1; i >= 0; i--)
-            {
-                PlayerObject player = CurrentMap.Players[i];
-
-                if (Functions.InRange(CurrentLocation, player.CurrentLocation, Globals.DataRange))
-                {
-                    CheckVisible(player, true);
-                    if(player.CheckStacked())
-                    {
-                        player.StackingTime = Envir.Time + 1000;
-                        player.Stacking = true;
-                    }
-                }
-            }
-        }
-
-        public override Packet GetInfo()
-        {
-            return new S.ObjectNPC
-            {
-                ObjectID = ObjectID,
-                Name = Name,
-                NameColour = NameColour,
-                Image = Info.Image,
-                Location = CurrentLocation,
-                Direction = Direction,
-                QuestIDs = (from q in Quests
-                            select q.Index).ToList()
-            };
-        }
-
-        public override void ApplyPoison(Poison p, MapObject Caster = null, bool NoResist = false, bool ignoreDefence = true)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override string Name
-        {
-            get { return Info.Name; }
-            set { throw new NotSupportedException(); }
-        }
-
-        public override bool Blocking
-        {
-            get { return Visible; }
-        }
-
-
-        public void CheckVisible(PlayerObject Player, bool Force = false)
-        {
-            bool CanSee;
-
-            VisibleLog.TryGetValue(Player.Info.Index, out CanSee);
-
-            if (Conq != null && Conq.WarIsOn)
-            {
-                if (CanSee) CurrentMap.Broadcast(new S.ObjectRemove { ObjectID = ObjectID }, CurrentLocation, Player);
-                VisibleLog[Player.Info.Index] = false;
-                return;
-            }
-
-            if (Info.FlagNeeded != 0 && !Player.Info.Flags[Info.FlagNeeded])
-            {
-                if (CanSee) CurrentMap.Broadcast(new S.ObjectRemove { ObjectID = ObjectID }, CurrentLocation, Player);
-                VisibleLog[Player.Info.Index] = false;
-                return;
-            }
-
-            if (Info.MinLev != 0 && Player.Level < Info.MinLev || Info.MaxLev != 0 && Player.Level > Info.MaxLev)
-            {
-                if (CanSee) CurrentMap.Broadcast(new S.ObjectRemove { ObjectID = ObjectID }, CurrentLocation, Player);
-                VisibleLog[Player.Info.Index] = false;
-                return;
-            }
-
-            if (Info.ClassRequired != "" && Player.Class.ToString() != Info.ClassRequired)
-            {
-                if (CanSee) CurrentMap.Broadcast(new S.ObjectRemove { ObjectID = ObjectID }, CurrentLocation, Player);
-                VisibleLog[Player.Info.Index] = false;
-                return;
-            }
-
-            if (Visible && !CanSee) CurrentMap.Broadcast(GetInfo(), CurrentLocation, Player);
-            else if (Force && Visible) CurrentMap.Broadcast(GetInfo(), CurrentLocation, Player);
-
-            VisibleLog[Player.Info.Index] = true;
-
-        }
-
-        public override int CurrentMapIndex { get; set; }
-
-        public override Point CurrentLocation
-        {
-            get { return Info.Location; }
-            set { throw new NotSupportedException(); }
-        }
-
-        public override MirDirection Direction { get; set; }
-
-        public override uint Health
-        {
-            get { throw new NotSupportedException(); }
-        }
-
-        public override uint MaxHealth
-        {
-            get { throw new NotSupportedException(); }
-        }
-        #endregion
-
-        public void Buy(PlayerObject player, ulong index, uint count)
-        {
-            UserItem goods = null;
-
-            for (int i = 0; i < Goods.Count; i++)
-            {
-                if (Goods[i].UniqueID != index) continue;
-                goods = Goods[i];
-                break;
-            }
-
-            bool isUsed = false;
-            if (goods == null)
-            {
-                for (int i = 0; i < UsedGoods.Count; i++)
-                {
-                    if (UsedGoods[i].UniqueID != index) continue;
-                    goods = UsedGoods[i];
-                    isUsed = true;
-                    break;
-                }
-            }
-
-            bool isBuyBack = false;
-            if (goods == null)
-            {
-                if (!BuyBack.ContainsKey(player.Name)) BuyBack[player.Name] = new List<UserItem>();
-                for (int i = 0; i < BuyBack[player.Name].Count; i++)
-                {
-                    if (BuyBack[player.Name][i].UniqueID != index) continue;
-                    goods = BuyBack[player.Name][i];
-                    isBuyBack = true;
-                    break;
-                }
-            }
-
-            if (goods == null || count == 0 || count > goods.Info.StackSize) return;
-
-            goods.Count = count;
-
-            uint cost = goods.Price();
-            cost = (uint)(cost * PriceRate(player));
-            uint baseCost = (uint)(goods.Price() * PriceRate(player, true));
-
-            if (player.NPCPage.Key.ToUpper() == PearlBuyKey)//pearl currency
-            {
-                if (cost > player.Info.PearlCount) return;
-            }
-            else if (cost > player.Account.Gold) return;
-
-            UserItem item = (isBuyBack || isUsed) ? goods : Envir.CreateFreshItem(goods.Info);
-            item.Count = goods.Count;
-
-            if (!player.CanGainItem(item)) return;
-
-            if (player.NPCPage.Key.ToUpper() == PearlBuyKey)//pearl currency
-            {
-                player.Info.PearlCount -= (int)cost;
+                DrawFrame = 0;
+                DrawWingFrame = 0;
             }
             else
             {
-                player.Account.Gold -= cost;
-                player.Enqueue(new S.LoseGold { Gold = cost });
-                if (Conq != null) Conq.GoldStorage += (cost - baseCost);
+                DrawFrame = Frame.Start + (Frame.OffSet * (byte)Direction) + FrameIndex;
+                DrawWingFrame = Frame.EffectStart + (Frame.EffectOffSet * (byte)Direction) + EffectFrameIndex;
             }
-            player.GainItem(item);
 
-            if (isUsed)
+            DrawY = CurrentLocation.Y;
+
+            DrawLocation = new Point((Movement.X - User.Movement.X + MapControl.OffSetX) * MapControl.CellWidth, (Movement.Y - User.Movement.Y + MapControl.OffSetY) * MapControl.CellHeight);
+            DrawLocation.Offset(User.OffSetMove);
+            DrawLocation.Offset(GlobalDisplayLocationOffset);
+
+            if (BodyLibrary != null)
+                FinalDrawLocation = DrawLocation.Add(BodyLibrary.GetOffSet(DrawFrame));
+
+            if (BodyLibrary != null && update)
             {
-                UsedGoods.Remove(goods); //If used or buyback will destroy whole stack instead of reducing to remaining quantity
-
-                List<UserItem> newGoodsList = new List<UserItem>();
-                newGoodsList.AddRange(Goods);
-                newGoodsList.AddRange(UsedGoods);
-
-                NeedSave = true;
-
-                player.Enqueue(new S.NPCGoods { List = newGoodsList, Rate = PriceRate(player) });
+                FinalDrawLocation = DrawLocation.Add(BodyLibrary.GetOffSet(DrawFrame));
+                DisplayRectangle = new Rectangle(DrawLocation, BodyLibrary.GetTrueSize(DrawFrame));
             }
 
-            if (isBuyBack)
+            for (int i = 0; i < Effects.Count; i++)
+                Effects[i].Process();
+
+            Color colour = DrawColour;
+
+            switch (Poison)
             {
-                BuyBack[player.Name].Remove(goods); //If used or buyback will destroy whole stack instead of reducing to remaining quantity
-                player.Enqueue(new S.NPCGoods { List = BuyBack[player.Name], Rate = PriceRate(player) });
+                case PoisonType.None:
+                    DrawColour = Color.White;
+                    break;
+                case PoisonType.Green:
+                    DrawColour = Color.Green;
+                    break;
+                case PoisonType.Red:
+                    DrawColour = Color.Red;
+                    break;
+                case PoisonType.Bleeding:
+                    DrawColour = Color.DarkRed;
+                    break;
+                case PoisonType.Slow:
+                    DrawColour = Color.Purple;
+                    break;
+                case PoisonType.Stun:
+                    DrawColour = Color.Yellow;
+                    break;
+                case PoisonType.Frozen:
+                    DrawColour = Color.Blue;
+                    break;
+                case PoisonType.Paralysis:
+                case PoisonType.LRParalysis:
+                    DrawColour = Color.Gray;
+                    break;
+            }
+
+
+            if (colour != DrawColour) GameScene.Scene.MapControl.TextureValid = false;
+
+
+            if (CMain.Time > QuestTime)
+            {
+                QuestTime = CMain.Time + 500;
+                if (++QuestIndex > 1) QuestIndex = 0;
             }
         }
-        public void Sell(PlayerObject player, UserItem item)
+        public virtual void ProcessFrames()
         {
-            /* Handle Item Sale */
-            if (!BuyBack.ContainsKey(player.Name)) BuyBack[player.Name] = new List<UserItem>();
+            if (Frame == null) return;
 
-            if (BuyBack[player.Name].Count >= Settings.GoodsBuyBackMaxStored)
-                BuyBack[player.Name].RemoveAt(0);
+            switch (CurrentAction)
+            {
+                case MirAction.Standing:
+                case MirAction.Harvest:
+                    if (CMain.Time >= NextMotion)
+                    {
+                        GameScene.Scene.MapControl.TextureValid = false;
 
-            item.BuybackExpiryDate = Envir.Now;
-            BuyBack[player.Name].Add(item);
+                        if (SkipFrames) UpdateFrame();
+
+                        if (UpdateFrame() >= Frame.Count)
+                        {
+                            FrameIndex = Frame.Count - 1;
+                            SetAction();
+                        }
+                        else
+                        {
+                            NextMotion += FrameInterval;
+                        }
+                    }
+
+                    if(EffectFrameInterval > 0)
+                    if (CMain.Time >= NextMotion2)
+                    {
+                        GameScene.Scene.MapControl.TextureValid = false;
+
+                        if (SkipFrames) UpdateFrame2();
+
+                        if (UpdateFrame2() >= Frame.EffectCount)
+                            EffectFrameIndex = Frame.EffectCount - 1;
+                        else
+                            NextMotion2 += EffectFrameInterval;
+                    }
+                    break;
+
+            }
+
         }
-    }
-
-
-
-    public class NPCChecks
-    {
-        public CheckType Type;
-        public List<string> Params = new List<string>();
-
-        public NPCChecks(CheckType check, params string[] p)
+        public int UpdateFrame()
         {
-            Type = check;
+            if (Frame == null) return 0;
 
-            for (int i = 0; i < p.Length; i++)
-                Params.Add(p[i]);
+            if (Frame.Reverse) return Math.Abs(--FrameIndex);
+
+            return ++FrameIndex;
         }
-    }
-    public class NPCActions
-    {
-        public ActionType Type;
-        public List<string> Params = new List<string>();
 
-        public NPCActions(ActionType action, params string[] p)
+        public int UpdateFrame2()
         {
-            Type = action;
+            if (Frame == null) return 0;
 
-            Params.AddRange(p);
+            if (Frame.Reverse) return Math.Abs(--EffectFrameIndex);
+
+            return ++EffectFrameIndex;
         }
-    }
 
-    public enum ActionType
-    {
-        Move,
-        InstanceMove,
-        GiveGold,
-        TakeGold,
-        GiveGuildGold,
-        TakeGuildGold,
-        GiveCredit,
-        TakeCredit,
-        GiveItem,
-        TakeItem,
-        GiveExp,
-        GivePet,
-        ClearPets,
-        AddNameList,
-        DelNameList,
-        ClearNameList,
-        GiveHP,
-        GiveMP,
-        ChangeLevel,
-        SetPkPoint,
-        ReducePkPoint,
-        IncreasePkPoint,
-        ChangeGender,
-        ChangeClass,
-        LocalMessage,
-        Goto,
-        GiveSkill,
-        RemoveSkill,
-        Set,
-        Param1,
-        Param2,
-        Param3,
-        Mongen,
-        TimeRecall,
-        TimeRecallGroup,
-        BreakTimeRecall,
-        MonClear,
-        GroupRecall,
-        GroupTeleport,
-        DelayGoto,
-        Mov,
-        Calc,
-        GiveBuff,
-        RemoveBuff,
-        AddToGuild,
-        RemoveFromGuild,
-        RefreshEffects,
-        ChangeHair,
-        CanGainExp,
-        ComposeMail,
-        AddMailItem,
-        AddMailGold,
-        SendMail,
-        GroupGoto,
-        EnterMap,
-        GivePearls,
-        TakePearls,
-        MakeWeddingRing,
-        ForceDivorce,
-        GlobalMessage,
-        LoadValue,
-        SaveValue,
-        RemovePet,
-        ConquestGuard,
-        ConquestGate,
-        ConquestWall,
-        ConquestSiege,
-        TakeConquestGold,
-        SetConquestRate,
-        StartConquest,
-        ScheduleConquest,
-        OpenGate,
-        CloseGate,
-        Break,
-    }
-    public enum CheckType
-    {
-        IsAdmin,
-        Level,
-        CheckItem,
-        CheckGold,
-        CheckGuildGold,
-        CheckCredit,
-        CheckGender,
-        CheckClass,
-        CheckDay,
-        CheckHour,
-        CheckMinute,
-        CheckNameList,
-        CheckPkPoint,
-        CheckRange,
-        Check,
-        CheckHum,
-        CheckMon,
-        CheckExactMon,
-        Random,
-        Groupleader,
-        GroupCount,
-        GroupCheckNearby,
-        PetLevel,
-        PetCount,
-        CheckCalc,
-        InGuild,
-        CheckMap,
-        CheckQuest,
-        CheckRelationship,
-        CheckWeddingRing,
-        CheckPet,
-        HasBagSpace,
-		IsNewHuman,
-        CheckConquest,
-        AffordGuard,
-        AffordGate,
-        AffordWall,
-        AffordSiege,
-        CheckPermission,
-        ConquestAvailable,
-        ConquestOwner,
+        public virtual void SetAction()
+        {
+            if (ActionFeed.Count == 0)
+            {
+                if (CMain.Random.Next(2) == 0 && Frames.Frames.Count > 1)
+                    CurrentAction = MirAction.Harvest;  
+                else
+                    CurrentAction = MirAction.Standing;
+
+                Frames.Frames.TryGetValue(CurrentAction, out Frame);
+                FrameIndex = 0;
+                EffectFrameIndex = 0;
+
+                if (MapLocation != CurrentLocation)
+                {
+                    GameScene.Scene.MapControl.RemoveObject(this);
+                    MapLocation = CurrentLocation;
+                    GameScene.Scene.MapControl.AddObject(this);
+                }
+
+                if (Frame == null) return;
+
+                FrameInterval = Frame.Interval;
+                EffectFrameInterval = Frame.EffectInterval;
+            }
+            else
+            {
+                QueuedAction action = ActionFeed[0];
+                ActionFeed.RemoveAt(0);
+
+                CurrentAction = action.Action;
+                CurrentLocation = action.Location;
+
+                if(CanChangeDir)
+                    Direction = action.Direction;
+                
+                FrameIndex = 0;
+                EffectFrameIndex = 0;
+
+                if (Frame == null) return;
+
+                FrameInterval = Frame.Interval;
+                EffectFrameInterval = Frame.EffectInterval;
+            }
+
+            NextMotion = CMain.Time + FrameInterval;
+            NextMotion2 = CMain.Time + EffectFrameInterval;
+
+            GameScene.Scene.MapControl.TextureValid = false;
+
+        }
+        public override void Draw()
+        {
+            if (BodyLibrary == null) return;
+
+            BodyLibrary.Draw(DrawFrame, DrawLocation, DrawColour, true);
+
+            if (QuestIcon == QuestIcon.None) return;
+
+            var offSet = BodyLibrary.GetOffSet(BaseIndex);
+            var size = BodyLibrary.GetSize(BaseIndex);
+
+            int imageIndex = 981 + ((int)QuestIcon * 2) + QuestIndex;
+
+            //Libraries.Prguse.Draw(981 + ((int)QuestIcon * 2) + QuestIndex, DrawLocation.Add(offSet).Add(0, -40), Color.White, false);
+            Libraries.Prguse.Draw(imageIndex, DrawLocation.Add(offSet).Add(size.Width / 2 - 28, -40), Color.White, false);
+        }
+
+        public override bool MouseOver(Point p)
+        {
+            return MapControl.MapLocation == CurrentLocation || BodyLibrary != null && BodyLibrary.VisiblePixel(DrawFrame, p.Subtract(FinalDrawLocation), false);
+        }
+
+        public override void DrawBehindEffects(bool effectsEnabled)
+        {
+        }
+
+        public override void DrawEffects(bool effectsEnabled)
+        {
+            if (!effectsEnabled) return;
+
+            if (BodyLibrary == null) return;
+
+            if (DrawWingFrame > 0)
+                BodyLibrary.DrawBlend(DrawWingFrame, DrawLocation, Color.White, true);
+        }
+
+        public override void DrawName()
+        {
+            if (!Name.Contains("_"))
+            {
+                base.DrawName();
+                return;
+            }
+
+            string[] splitName = Name.Split('_');
+
+            for (int s = 0; s < splitName.Count(); s++)
+            {
+                CreateNPCLabel(splitName[s], s);
+
+                TempLabel.Text = splitName[s];
+                TempLabel.Location = new Point(DisplayRectangle.X + (48 - TempLabel.Size.Width) / 2, DisplayRectangle.Y - (32 - TempLabel.Size.Height / 2) + (Dead ? 35 : 8) - (((splitName.Count() - 1) * 10) / 2) + (s * 12));
+                TempLabel.Draw();
+            }
+        }
+
+        public void CreateNPCLabel(string word, int wordOrder)
+        {
+            TempLabel = null;
+
+            for (int i = 0; i < LabelList.Count; i++)
+            {
+                if (LabelList[i].Text != word || LabelList[i].ForeColour != (wordOrder == 0 ? NameColour : Color.White)) continue;
+                TempLabel = LabelList[i];
+                break;
+            }
+
+            if (TempLabel != null && !TempLabel.IsDisposed) return;
+
+            TempLabel = new MirLabel
+            {
+                AutoSize = true,
+                BackColour = Color.Transparent,
+                ForeColour = wordOrder == 0 ? NameColour : Color.White,
+                OutLine = true,
+                OutLineColour = Color.Black,
+                Text = word,
+            };
+
+            TempLabel.Disposing += (o, e) => LabelList.Remove(TempLabel);
+            LabelList.Add(TempLabel);
+        }
+
+
+        //Quests
+
+        #region Quest System
+        public void UpdateBestQuestIcon()
+        {
+            ClientQuestProgress quests = GetAvailableQuests(true).FirstOrDefault();
+            QuestIcon bestIcon = QuestIcon.None;
+
+            if (quests != null)
+            {
+                bestIcon = quests.Icon;
+            }
+
+            QuestIcon = bestIcon;
+        }
+    
+        public List<ClientQuestProgress> GetAvailableQuests(bool returnFirst = false)
+        {
+            List<ClientQuestProgress> quests = new List<ClientQuestProgress>();
+
+            foreach (ClientQuestProgress q in User.CurrentQuests.Where(q => !User.CompletedQuests.Contains(q.QuestInfo.Index)))
+            {
+                if (q.QuestInfo.FinishNPCIndex == ObjectID)
+                {
+                    quests.Add(q);
+                }
+                else if (q.QuestInfo.NPCIndex == ObjectID && q.QuestInfo.SameFinishNPC)
+                {
+                    quests.Add(q);
+
+                    if (returnFirst) return quests;
+                }
+            }
+
+            foreach (ClientQuestProgress quest in (
+                from q in Quests
+                where !quests.Exists(p => p.QuestInfo.Index == q.Index) 
+                where CanAccept(q) 
+                where !User.CompletedQuests.Contains(q.Index) 
+                select q).Select(
+                q => User.CurrentQuests.Exists(p => p.QuestInfo.Index == q.Index) ? 
+                    new ClientQuestProgress { QuestInfo = q, Taken = true, Completed = false } : 
+                    new ClientQuestProgress { QuestInfo = q }))
+            {
+                quests.Add(quest);
+
+                if (returnFirst) return quests;
+            }
+
+            return quests;
+        }
+
+        public bool CanAccept(ClientQuestInfo quest)
+        {
+            if (quest.MinLevelNeeded > User.Level || quest.MaxLevelNeeded < User.Level)
+                return false;
+
+            if (!quest.ClassNeeded.HasFlag(RequiredClass.None))
+            {
+                switch (User.Class)
+                {
+                    case MirClass.Warrior:
+                        if (!quest.ClassNeeded.HasFlag(RequiredClass.Warrior))
+                            return false;
+                        break;
+                    case MirClass.Wizard:
+                        if (!quest.ClassNeeded.HasFlag(RequiredClass.Wizard))
+                            return false;
+                        break;
+                    case MirClass.Taoist:
+                        if (!quest.ClassNeeded.HasFlag(RequiredClass.Taoist))
+                            return false;
+                        break;
+                    case MirClass.Assassin:
+                        if (!quest.ClassNeeded.HasFlag(RequiredClass.Assassin))
+                            return false;
+                        break;
+                    case MirClass.Archer:
+                        if (!quest.ClassNeeded.HasFlag(RequiredClass.Archer))
+                            return false;
+                        break;
+                }
+            }
+
+            //check against active quest list
+            return quest.QuestNeeded <= 0 || User.CompletedQuests.Contains(quest.QuestNeeded);
+        }
+
+        #endregion
     }
 }

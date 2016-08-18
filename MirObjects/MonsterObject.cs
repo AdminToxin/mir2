@@ -1,2933 +1,3822 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using Server.MirDatabase;
-using Server.MirEnvir;
-using Server.MirObjects.Monsters;
+using System.Text;
+using Client.MirGraphics;
+using Client.MirScenes;
+using Client.MirSounds;
 using S = ServerPackets;
+using Client.MirControls;
 
-namespace Server.MirObjects
+namespace Client.MirObjects
 {
-    public class MonsterObject : MapObject
+    class MonsterObject : MapObject
     {
-        public static MonsterObject GetMonster(MonsterInfo info)
-        {
-            if (info == null) return null;
-
-            switch (info.AI)
-            {
-                case 1:
-                case 2:
-                    return new Deer(info);
-                case 3:
-                    return new Tree(info);
-                case 4:
-                    return new SpittingSpider(info);
-                case 5:
-                    return new CannibalPlant(info);
-                case 6:
-                    return new Guard(info);
-                case 7:
-                    return new CaveMaggot(info);
-                case 8:
-                    return new AxeSkeleton(info);
-                case 9:
-                    return new HarvestMonster(info);
-                case 10:
-                    return new FlamingWooma(info);
-                case 11:
-                    return new WoomaTaurus(info);
-                case 12:
-                    return new BugBagMaggot(info);
-                case 13:
-                    return new RedMoonEvil(info);
-                case 14:
-                    return new EvilCentipede(info);
-                case 15:
-                    return new ZumaMonster(info);
-                case 16:
-                    return new RedThunderZuma(info);
-                case 17:
-                    return new ZumaTaurus(info);
-                case 18:
-                    return new Shinsu(info);
-                case 19:
-                    return new KingScorpion(info);
-                case 20:
-                    return new DarkDevil(info);
-                case 21:
-                    return new IncarnatedGhoul(info);
-                case 22:
-                    return new IncarnatedZT(info);
-                case 23:
-                    return new BoneFamiliar(info);
-                case 24:
-                    return new DigOutZombie(info);
-                case 25:
-                    return new RevivingZombie(info);
-                case 26:
-                    return new ShamanZombie(info);
-                case 27:
-                    return new Khazard(info);
-                case 28:
-                    return new ToxicGhoul(info);
-                case 29:
-                    return new BoneSpearman(info);
-                case 30:
-                    return new BoneLord(info);
-                case 31:
-                    return new RightGuard(info);
-                case 32:
-                    return new LeftGuard(info);
-                case 33:
-                    return new MinotaurKing(info);
-                case 34:
-                    return new FrostTiger(info);
-                case 35:
-                    return new SandWorm(info);
-                case 36:
-                    return new Yimoogi(info);
-                case 37:
-                    return new CrystalSpider(info);
-                case 38:
-                    return new HolyDeva(info);
-                case 39:
-                    return new RootSpider(info);
-                case 40:
-                    return new BombSpider(info);
-                case 41:
-                case 42:
-                    return new YinDevilNode(info);
-                case 43:
-                    return new OmaKing(info);
-                case 44:
-                    return new BlackFoxman(info);
-                case 45:
-                    return new RedFoxman(info);
-                case 46:
-                    return new WhiteFoxman(info);
-                case 47:
-                    return new TrapRock(info);
-                case 48:
-                    return new GuardianRock(info);
-                case 49:
-                    return new ThunderElement(info);
-                case 50:
-                    return new GreatFoxSpirit(info);
-                case 51:
-                    return new HedgeKekTal(info);
-                case 52:
-                    return new EvilMir(info);
-                case 53:
-                    return new EvilMirBody(info);
-                case 54:
-                    return new DragonStatue(info);
-                case 55:
-                    return new HumanWizard(info);
-                case 56:
-                    return new Trainer(info);
-                case 57:
-                    return new TownArcher(info);
-                case 58:
-                    return new Guard(info);
-                case 59:
-                    return new HumanAssassin(info);
-                case 60:
-                    return new VampireSpider(info);
-                case 61:
-                    return new SpittingToad(info);
-                case 62:
-                    return new SnakeTotem(info);
-                case 63:
-                    return new CharmedSnake(info);
-                case 64:
-                    return new IntelligentCreatureObject(info);
-                case 65:
-                    return new MutatedManworm(info);
-                case 66:
-                    return new CrazyManworm(info);
-                case 67:
-                    return new DarkDevourer(info);
-                case 68:
-                    return new Football(info);
-                case 69:
-                    return new PoisonHugger(info);
-                case 70:
-                    return new Hugger(info);
-                case 71:
-                    return new Behemoth(info);
-                case 72:
-                    return new FinialTurtle(info);
-                case 73:
-                    return new TurtleKing(info);
-                case 74:
-                    return new LightTurtle(info);
-                case 75:
-                    return new WitchDoctor(info);
-                case 76:
-                    return new HellSlasher(info);
-                case 77:
-                    return new HellPirate(info);
-                case 78:
-                    return new HellCannibal(info);
-                case 79:
-                    return new HellKeeper(info);
-                case 80:
-                    return new ConquestArcher(info);
-                case 81:
-                    return new Gate(info);
-                case 82:
-                    return new Wall(info);
-                case 83:
-                    return new Tornado(info);
-                case 84:
-                    return new WingedTigerLord(info);
-
-                case 86:
-                    return new ManectricClaw(info);
-                case 87:
-                    return new ManectricBlest(info);
-                case 88:
-                    return new ManectricKing(info);
-                case 89:
-                    return new IcePillar(info);
-                case 90:
-                    return new TrollBomber(info);
-                case 91:
-                    return new TrollKing(info);
-                case 92:
-                    return new FlameSpear(info);
-                case 93:
-                    return new FlameMage(info);
-                case 94:
-                    return new FlameScythe(info);
-                case 95:
-                    return new FlameAssassin(info);
-                case 96:
-                    return new FlameQueen(info);
-                case 97:
-                    return new HellKnight(info);
-                case 98:
-                    return new HellLord(info);
-                case 99:
-                    return new HellBomb(info);
-
-                //unfinished
-                case 253:
-                    return new FlamingMutant(info);
-                case 254:
-                    return new StoningStatue(info);
-                //unfinished END
-
-
-                case 200://custom
-                    return new Runaway(info);
-                case 201://custom
-                    return new TalkingMonster(info);
-
-                default:
-                    return new MonsterObject(info);
-            }
-        }
-
         public override ObjectType Race
         {
             get { return ObjectType.Monster; }
         }
-
-        public MonsterInfo Info;
-        public MapRespawn Respawn;
-        
-        public override string Name
-        {
-            get { return Master == null ? Info.GameName : string.Format("{0}({1})", Info.GameName, Master.Name); }
-            set { throw new NotSupportedException(); }
-        }
-
-        public override int CurrentMapIndex { get; set; }
-        public override Point CurrentLocation { get; set; }
-        public override sealed MirDirection Direction { get; set; }
-        public override ushort Level
-        {
-            get { return Info.Level; }
-            set { throw new NotSupportedException(); }
-        }
-
-        public override sealed AttackMode AMode
-        {
-            get
-            {
-                return base.AMode;
-            }
-            set
-            {
-                base.AMode = value;
-            }
-        }
-        public override sealed PetMode PMode
-        {
-            get
-            {
-                return base.PMode;
-            }
-            set
-            {
-                base.PMode = value;
-            }
-        }
-
-        public override uint Health
-        {
-            get { return HP; }
-        }
-
-        public override uint MaxHealth
-        {
-            get { return MaxHP; }
-        }
-
-        public uint HP, MaxHP;
-        public ushort MoveSpeed;
-
-        public virtual uint Experience 
-        { 
-            get { return Info.Experience; } 
-        }
-        public int DeadDelay
-        {
-            get
-            {
-                switch (Info.AI)
-                {
-                    case 81:
-                    case 82:
-                        return int.MaxValue;
-                    case 252:
-                        return 5000;
-                    default:
-                        return 180000;
-                }
-            }
-        }
-        public const int RegenDelay = 10000, EXPOwnerDelay = 5000, SearchDelay = 3000, RoamDelay = 1000, HealDelay = 600, RevivalDelay = 2000;
-        public long ActionTime, MoveTime, AttackTime, RegenTime, DeadTime, SearchTime, RoamTime, HealTime;
-        public long ShockTime, RageTime, HallucinationTime;
-        public bool BindingShotCenter, PoisonStopRegen = true;
-
-        public byte PetLevel;
-        public uint PetExperience;
-        public byte MaxPetLevel;
-        public long TameTime;
-
-        public int RoutePoint;
-        public bool Waiting;
-
-        public List<MonsterObject> SlaveList = new List<MonsterObject>();
-        public List<RouteInfo> Route = new List<RouteInfo>();
-
         public override bool Blocking
         {
-            get
-            {
-                return !Dead;
-            }
+            get { return AI == 64 || (AI == 72 && Direction == (MirDirection)6) ? false : !Dead; }
         }
-        protected virtual bool CanRegen
-        {
-            get { return Envir.Time >= RegenTime; }
-        }
-        protected virtual bool CanMove
+        public Point ManualLocationOffset
         {
             get
             {
-                return !Dead && Envir.Time > MoveTime && Envir.Time > ActionTime && Envir.Time > ShockTime &&
-                       (Master == null || Master.PMode == PetMode.MoveOnly || Master.PMode == PetMode.Both) && !CurrentPoison.HasFlag(PoisonType.Paralysis)
-                       && !CurrentPoison.HasFlag(PoisonType.LRParalysis) && !CurrentPoison.HasFlag(PoisonType.Stun) && !CurrentPoison.HasFlag(PoisonType.Frozen);
-            }
-        }
-        protected virtual bool CanAttack
-        {
-            get
-            {
-                return !Dead && Envir.Time > AttackTime && Envir.Time > ActionTime &&
-                     (Master == null || Master.PMode == PetMode.AttackOnly || Master.PMode == PetMode.Both || !CurrentMap.Info.NoFight) && !CurrentPoison.HasFlag(PoisonType.Paralysis)
-                       && !CurrentPoison.HasFlag(PoisonType.LRParalysis) && !CurrentPoison.HasFlag(PoisonType.Stun) && !CurrentPoison.HasFlag(PoisonType.Frozen);
-            }
-        }
-
-        protected internal MonsterObject(MonsterInfo info)
-        {
-            Info = info;
-
-            Undead = Info.Undead;
-            AutoRev = info.AutoRev;
-            CoolEye = info.CoolEye > Envir.Random.Next(100);
-            Direction = (MirDirection)Envir.Random.Next(8);
-
-            AMode = AttackMode.All;
-            PMode = PetMode.Both;
-
-            RegenTime = Envir.Random.Next(RegenDelay) + Envir.Time;
-            SearchTime = Envir.Random.Next(SearchDelay) + Envir.Time;
-            RoamTime = Envir.Random.Next(RoamDelay) + Envir.Time;
-        }
-        public bool Spawn(Map temp, Point location)
-        {
-            if (!temp.ValidPoint(location)) return false;
-
-            CurrentMap = temp;
-            CurrentLocation = location;
-
-            CurrentMap.AddObject(this);
-
-            RefreshAll();
-            SetHP(MaxHP);
-
-            Spawned();
-            Envir.MonsterCount++;
-            CurrentMap.MonsterCount++;
-            return true;
-        }
-        public bool Spawn(MapRespawn respawn)
-        {
-            Respawn = respawn;
-
-            if (Respawn.Map == null) return false;
-
-            for (int i = 0; i < 10; i++)
-            {
-                CurrentLocation = new Point(Respawn.Info.Location.X + Envir.Random.Next(-Respawn.Info.Spread, Respawn.Info.Spread + 1),
-                                            Respawn.Info.Location.Y + Envir.Random.Next(-Respawn.Info.Spread, Respawn.Info.Spread + 1));
-
-                if (!respawn.Map.ValidPoint(CurrentLocation)) continue;
-
-                respawn.Map.AddObject(this);
-
-                CurrentMap = respawn.Map;
-
-                if (Respawn.Route.Count > 0)
-                    Route.AddRange(Respawn.Route);
-
-                RefreshAll();
-                SetHP(MaxHP);
-
-                Spawned();
-                Respawn.Count++;
-                respawn.Map.MonsterCount++;
-                Envir.MonsterCount++;
-                return true;
-            }
-            return false;
-        }
-
-        public override void Spawned()
-        {
-            base.Spawned();
-            ActionTime = Envir.Time + 2000;
-            if (Info.HasSpawnScript && (SMain.Envir.MonsterNPC != null))
-            {
-                SMain.Envir.MonsterNPC.Call(this,string.Format("[@_SPAWN({0})]", Info.Index));
-            }
-        }
-
-        protected virtual void RefreshBase()
-        {
-            MaxHP = Info.HP;
-            MinAC = Info.MinAC;
-            MaxAC = Info.MaxAC;
-            MinMAC = Info.MinMAC;
-            MaxMAC = Info.MaxMAC;
-            MinDC = Info.MinDC;
-            MaxDC = Info.MaxDC;
-            MinMC = Info.MinMC;
-            MaxMC = Info.MaxMC;
-            MinSC = Info.MinSC;
-            MaxSC = Info.MaxSC;
-            Accuracy = Info.Accuracy;
-            Agility = Info.Agility;
-
-            MoveSpeed = Info.MoveSpeed;
-            AttackSpeed = Info.AttackSpeed;
-        }
-        public virtual void RefreshAll()
-        {
-            RefreshBase();
-            
-                MaxHP = (ushort)Math.Min(ushort.MaxValue, MaxHP + PetLevel * 20);
-                MinAC = (ushort)Math.Min(ushort.MaxValue, MinAC + PetLevel * 2);
-                MaxAC = (ushort)Math.Min(ushort.MaxValue, MaxAC + PetLevel * 2);
-                MinMAC = (ushort)Math.Min(ushort.MaxValue, MinMAC + PetLevel * 2);
-                MaxMAC = (ushort)Math.Min(ushort.MaxValue, MaxMAC + PetLevel * 2);
-                MinDC = (ushort)Math.Min(ushort.MaxValue, MinDC + PetLevel);
-                MaxDC = (ushort)Math.Min(ushort.MaxValue, MaxDC + PetLevel);
-
-            if (Info.Name == Settings.SkeletonName ||Info.Name == Settings.ShinsuName ||Info.Name == Settings.AngelName) 
-            {
-                MoveSpeed = (ushort)Math.Min(ushort.MaxValue, (Math.Max(ushort.MinValue, MoveSpeed - MaxPetLevel * 130)));
-                AttackSpeed = (ushort)Math.Min(ushort.MaxValue, (Math.Max(ushort.MinValue, AttackSpeed - MaxPetLevel * 70)));
-            }
-
-            if (MoveSpeed < 400) MoveSpeed = 400;
-            if (AttackSpeed < 400) AttackSpeed = 400;
-
-            RefreshBuffs();
-        }
-        protected virtual void RefreshBuffs()
-        {
-            for (int i = 0; i < Buffs.Count; i++)
-            {
-                Buff buff = Buffs[i];
-
-                if (buff.Values == null || buff.Values.Length < 1) continue;
-
-                switch (buff.Type)
+                switch (BaseImage)
                 {
-                    case BuffType.Haste:
-                        ASpeed = (sbyte)Math.Max(sbyte.MinValue, (Math.Min(sbyte.MaxValue, ASpeed + buff.Values[0])));
+                    case Monster.EvilMir:
+                        return new Point(-21, -15);
+                    case Monster.PalaceWall2:
+                    case Monster.PalaceWallLeft:
+                    case Monster.PalaceWall1:
+                    case Monster.GiGateSouth:
+                    case Monster.GiGateWest:
+                    case Monster.SSabukWall1:
+                    case Monster.SSabukWall2:
+                    case Monster.SSabukWall3:
+                        return new Point(-10, 0);
                         break;
-                    case BuffType.SwiftFeet:
-                        MoveSpeed = (ushort)Math.Max(ushort.MinValue, MoveSpeed + 100 * buff.Values[0]);
+                    case Monster.GiGateEast:
+                        return new Point(-45, 7);
                         break;
-                    case BuffType.LightBody:
-                        Agility = (byte)Math.Min(byte.MaxValue, Agility + buff.Values[0]);
-                        break;
-                    case BuffType.SoulShield:
-                        MaxMAC = (ushort)Math.Min(ushort.MaxValue, MaxMAC + buff.Values[0]);
-                        break;
-                    case BuffType.BlessedArmour:
-                        MaxAC = (ushort)Math.Min(ushort.MaxValue, MaxAC + buff.Values[0]);
-                        break;
-                    case BuffType.UltimateEnhancer:
-                        MaxDC = (ushort)Math.Min(ushort.MaxValue, MaxDC + buff.Values[0]);
-                        break;
-                    case BuffType.Curse:
-                        ushort rMaxDC = (ushort)(((int)MaxDC / 100) * buff.Values[0]);
-                        ushort rMaxMC = (ushort)(((int)MaxMC / 100) * buff.Values[0]);
-                        ushort rMaxSC = (ushort)(((int)MaxSC / 100) * buff.Values[0]);
-                        sbyte rASpeed = (sbyte)(((int)ASpeed / 100) * buff.Values[0]);
-                        ushort rMSpeed = (ushort)((MoveSpeed / 100) * buff.Values[0]);
-
-                        MaxDC = (ushort)Math.Max(ushort.MinValue, MaxDC - rMaxDC);
-                        MaxMC = (ushort)Math.Max(ushort.MinValue, MaxMC - rMaxMC);
-                        MaxSC = (ushort)Math.Max(ushort.MinValue, MaxSC - rMaxSC);
-                        ASpeed = (sbyte)Math.Min(sbyte.MaxValue, (Math.Max(sbyte.MinValue, ASpeed - rASpeed)));
-                        MoveSpeed = (ushort)Math.Max(ushort.MinValue, MoveSpeed - rMSpeed);
-                        break;
-
-                    case BuffType.PetEnhancer:
-                        MinDC = (ushort)Math.Min(ushort.MaxValue, MinDC + buff.Values[0]);
-                        MaxDC = (ushort)Math.Min(ushort.MaxValue, MaxDC + buff.Values[0]);
-                        MinAC = (ushort)Math.Min(ushort.MaxValue, MinAC + buff.Values[1]);
-                        MaxAC = (ushort)Math.Min(ushort.MaxValue, MaxAC + buff.Values[1]);
-                        break;
-                }
-
-            }
-        }
-        public void RefreshNameColour(bool send = true)
-        {
-            if (ShockTime < Envir.Time) BindingShotCenter = false;
-
-            Color colour = Color.White;
-            
-            switch (PetLevel)
-            {
-                case 1:
-                    colour = Color.Aqua;
-                    break;
-                case 2:
-                    colour = Color.Aquamarine;
-                    break;
-                case 3:
-                    colour = Color.LightSeaGreen;
-                    break;
-                case 4:
-                    colour = Color.SlateBlue;
-                    break;
-                case 5:
-                    colour = Color.SteelBlue;
-                    break;
-                case 6:
-                    colour = Color.Blue;
-                    break;
-                case 7:
-                    colour = Color.Navy;
-                    break;
-            }
-
-            if (Envir.Time < ShockTime)
-                colour = Color.Peru;
-            else if (Envir.Time < RageTime)
-                colour = Color.Red;
-            else if (Envir.Time < HallucinationTime)
-                colour = Color.MediumOrchid;
-
-            if (colour == NameColour || !send) return;
-
-            NameColour = colour;
-
-            Broadcast(new S.ObjectColourChanged { ObjectID = ObjectID, NameColour = NameColour });
-        }
-
-        public void SetHP(uint amount)
-        {
-            if (HP == amount) return;
-
-            HP = amount <= MaxHP ? amount : MaxHP;
-
-            if (!Dead && HP == 0) Die();
-
-            //  HealthChanged = true;
-            BroadcastHealthChange();
-        }
-        public virtual void ChangeHP(int amount)
-        {
-
-            uint value = (uint)Math.Max(uint.MinValue, Math.Min(MaxHP, HP + amount));
-
-            if (value == HP) return;
-
-            HP = value;
-
-            if (!Dead && HP == 0) Die();
-
-           // HealthChanged = true;
-            BroadcastHealthChange();
-        }
-
-        //use this so you can have mobs take no/reduced poison damage
-        public virtual void PoisonDamage(int amount, MapObject Attacker)
-        {
-            ChangeHP(amount);
-        }
-
-
-        public override bool Teleport(Map temp, Point location, bool effects = true, byte effectnumber = 0)
-        {
-            if (temp == null || !temp.ValidPoint(location)) return false;
-
-            CurrentMap.RemoveObject(this);
-            if (effects) Broadcast(new S.ObjectTeleportOut { ObjectID = ObjectID, Type = effectnumber });
-            Broadcast(new S.ObjectRemove { ObjectID = ObjectID });
-            
-            CurrentMap.MonsterCount--;
-
-            CurrentMap = temp;
-            CurrentLocation = location;
-            
-            CurrentMap.MonsterCount++;
-
-            InTrapRock = false;
-
-            CurrentMap.AddObject(this);
-            BroadcastInfo();
-
-            if (effects) Broadcast(new S.ObjectTeleportIn { ObjectID = ObjectID, Type = effectnumber });
-
-            BroadcastHealthChange();
-
-            return true;
-        }
-
-
-        public override void Die()
-        {
-            if (Dead) return;
-
-            HP = 0;
-            Dead = true;
-
-            DeadTime = Envir.Time + DeadDelay;
-
-            Broadcast(new S.ObjectDied { ObjectID = ObjectID, Direction = Direction, Location = CurrentLocation });
-
-            if (Info.HasDieScript && (SMain.Envir.MonsterNPC != null))
-            {
-                SMain.Envir.MonsterNPC.Call(this,string.Format("[@_DIE({0})]", Info.Index));
-            }
-
-            if (EXPOwner != null && Master == null && EXPOwner.Race == ObjectType.Player)
-            {
-                EXPOwner.WinExp(Experience, Level);
-
-                PlayerObject playerObj = (PlayerObject)EXPOwner;
-                playerObj.CheckGroupQuestKill(Info);
-            }
-
-            if (Respawn != null)
-                Respawn.Count--;
-
-            if (Master == null && EXPOwner != null)
-                 Drop();
-
-            Master = null;
-
-            PoisonList.Clear();
-            Envir.MonsterCount--;
-            CurrentMap.MonsterCount--;
-        }
-
-        public void Revive(uint hp, bool effect)
-        {
-            if (!Dead) return;
-
-            SetHP(hp);
-
-            Dead = false;
-            ActionTime = Envir.Time + RevivalDelay;
-
-            Broadcast(new S.ObjectRevived { ObjectID = ObjectID, Effect = effect });
-
-            if (Respawn != null)
-                Respawn.Count++;
-
-            Envir.MonsterCount++;
-            CurrentMap.MonsterCount++;
-        }
-
-        public override int Pushed(MapObject pusher, MirDirection dir, int distance)
-        {
-            if (!Info.CanPush) return 0;
-            //if (!CanMove) return 0; //stops mobs that can't move (like cannibalplants) from being pushed
-
-            int result = 0;
-            MirDirection reverse = Functions.ReverseDirection(dir);
-            for (int i = 0; i < distance; i++)
-            {
-                Point location = Functions.PointMove(CurrentLocation, dir, 1);
-
-                if (!CurrentMap.ValidPoint(location)) return result;
-
-                Cell cell = CurrentMap.GetCell(location);
-
-                bool stop = false;
-                if (cell.Objects != null)
-                    for (int c = 0; c < cell.Objects.Count; c++)
-                    {
-                        MapObject ob = cell.Objects[c];
-                        if (!ob.Blocking) continue;
-                        stop = true;
-                    }
-                if (stop) break;
-
-                CurrentMap.GetCell(CurrentLocation).Remove(this);
-
-                Direction = reverse;
-                RemoveObjects(dir, 1);
-                CurrentLocation = location;
-                CurrentMap.GetCell(CurrentLocation).Add(this);
-                AddObjects(dir, 1);
-
-                Broadcast(new S.ObjectPushed { ObjectID = ObjectID, Direction = Direction, Location = CurrentLocation });
-
-                result++;
-            }
-
-            ActionTime = Envir.Time + 300 * result;
-            MoveTime = Envir.Time + 500 * result;
-
-            if (result > 0)
-            {
-                Cell cell = CurrentMap.GetCell(CurrentLocation);
-
-                for (int i = 0; i < cell.Objects.Count; i++)
-                {
-                    if (cell.Objects[i].Race != ObjectType.Spell) continue;
-                    SpellObject ob = (SpellObject)cell.Objects[i];
-
-                    ob.ProcessSpell(this);
-                    //break;
+                    default:
+                        return new Point(0, 0);
                 }
             }
-
-            return result;
         }
 
-        protected virtual void Drop()
+        public Monster BaseImage;
+        public byte Effect;
+        public bool Skeleton;
+
+        public FrameSet Frames;
+        public Frame Frame;
+        public int FrameIndex, FrameInterval, EffectFrameIndex, EffectFrameInterval;
+
+        public uint TargetID;
+        public Point TargetPoint;
+
+        public bool Stoned;
+        public byte Stage;
+        public int BaseSound;
+
+        public long ShockTime;
+        public bool BindingShotCenter;
+
+        public Color OldNameColor;
+
+        public MonsterObject(uint objectID)
+            : base(objectID)
         {
-            for (int i = 0; i < Info.Drops.Count; i++)
+        }
+        public void Load(S.ObjectMonster info, bool update = false)
+        {
+            Name = info.Name;
+            NameColour = info.NameColour;
+            BaseImage = info.Image;
+
+            OldNameColor = NameColour;
+
+            CurrentLocation = info.Location;
+            MapLocation = info.Location;
+            if (!update) GameScene.Scene.MapControl.AddObject(this);
+
+
+
+            Effect = info.Effect;
+            AI = info.AI;
+            Light = info.Light;
+
+            Direction = info.Direction;
+            Dead = info.Dead;
+            Poison = info.Poison;
+            Skeleton = info.Skeleton;
+            Hidden = info.Hidden;
+            ShockTime = CMain.Time + info.ShockTime;
+            BindingShotCenter = info.BindingShotCenter;
+
+            if (Stage != info.ExtraByte)
             {
-                DropInfo drop = Info.Drops[i];
-
-                int rate = (int)(drop.Chance / (Settings.DropRate));
-
-                if (EXPOwner != null && EXPOwner.ItemDropRateOffset > 0)
-                    rate -= (int)(rate * (EXPOwner.ItemDropRateOffset / 100));
-                
-                if (rate < 1) rate = 1;
-
-                if (Envir.Random.Next(rate) != 0) continue;
-
-                if (drop.Gold > 0)
+                switch (BaseImage)
                 {
-                    int lowerGoldRange = (int)(drop.Gold / 2);
-                    int upperGoldRange = (int)(drop.Gold + drop.Gold / 2);
-
-                    if (EXPOwner != null && EXPOwner.GoldDropRateOffset > 0)
-                        lowerGoldRange += (int)(lowerGoldRange * (EXPOwner.GoldDropRateOffset / 100));
-
-                    if (lowerGoldRange > upperGoldRange) lowerGoldRange = upperGoldRange;
-
-                    int gold = Envir.Random.Next(lowerGoldRange, upperGoldRange);
-
-                    if (gold <= 0) continue;
-
-                    if (!DropGold((uint)gold)) return;
-                }
-                else
-                {
-                    UserItem item = Envir.CreateDropItem(drop.Item);
-                    if (item == null) continue;
-
-                    if (EXPOwner != null && EXPOwner.Race == ObjectType.Player)
-                    {
-                        PlayerObject ob = (PlayerObject) EXPOwner;
-
-                        if (ob.CheckGroupQuestItem(item))
+                    case Monster.GreatFoxSpirit:
+                        if (update)
                         {
-                            continue;
+                            Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.GreatFoxSpirit], 335, 20, 3000, this));
+                            SoundManager.PlaySound(BaseSound + 8);
                         }
-                    }
+                        break;
+                    case Monster.HellLord:
+                        {
+                            Effects.Clear();
 
-                    if (drop.QuestRequired) continue;
-                    if (!DropItem(item)) return;
+                            var effects = MapControl.Effects.Where(x => x.Library == Libraries.Monsters[(ushort)Monster.HellLord]);
+
+                            foreach (var effect in effects)
+                                effect.Repeat = false;
+
+                            if (info.ExtraByte > 3)
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.HellLord], 21, 6, 600, this) { Repeat = true });
+                            else
+                            {
+                                if (info.ExtraByte > 2)
+                                    MapControl.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.HellLord], 105, 6, 600, new Point(100, 84)) { Repeat = true });
+                                if (info.ExtraByte > 1)
+                                    MapControl.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.HellLord], 111, 6, 600, new Point(96, 81)) { Repeat = true });
+                                if (info.ExtraByte > 0)
+                                    MapControl.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.HellLord], 123, 6, 600, new Point(93, 84)) { Repeat = true });
+                            }
+                        }
+                        break;
                 }
             }
-        }
 
-        protected virtual bool DropItem(UserItem item)
-        {
-            if (CurrentMap.Info.NoDropMonster) return false;
+            Stage = info.ExtraByte;
 
-            ItemObject ob = new ItemObject(this, item)
+            switch (BaseImage)
             {
-                Owner = EXPOwner,
-                OwnerTime = Envir.Time + Settings.Minute,
-            };
+                case Monster.EvilMir:
+                case Monster.DragonStatue:
+                    BodyLibrary = Libraries.Dragon;
+                    break;
+                case Monster.EvilMirBody:
+                    break;
+                case Monster.BabyPig:
+                case Monster.Chick:
+                case Monster.Kitten:
+                case Monster.BabySkeleton:
+                case Monster.Baekdon:
+                case Monster.Wimaen:
+                case Monster.BlackKitten:
+                case Monster.BabyDragon:
+                case Monster.OlympicFlame:
+                case Monster.BabySnowMan:
+                case Monster.Frog:
+                case Monster.BabyMonkey:
+                    BodyLibrary = Libraries.Pets[((ushort)BaseImage) - 10000];
+                    break;
+                case Monster.SabukGate:
+                case Monster.PalaceWallLeft:
+                case Monster.PalaceWall1:
+                case Monster.PalaceWall2:
+                    BodyLibrary = Libraries.Effect;
+                    break;
+                case Monster.SSabukWall1:
+                case Monster.SSabukWall2:
+                case Monster.SSabukWall3:
+                    BodyLibrary = Libraries.Gates[0];
+                    break;
+                case Monster.GiGateSouth:
+                case Monster.GiGateEast:
+                case Monster.GiGateWest:
+                    BodyLibrary = Libraries.Gates[1];
+                    break;
+                case Monster.HellBomb1:
+                case Monster.HellBomb2:
+                case Monster.HellBomb3:
+                    BodyLibrary = Libraries.Monsters[(ushort)Monster.HellLord];
+                    break;
+                default:
+                    BodyLibrary = Libraries.Monsters[(ushort)BaseImage];
+                    break;
+            }
+            
+            if (Skeleton)
+                ActionFeed.Add(new QueuedAction { Action = MirAction.Skeleton, Direction = Direction, Location = CurrentLocation });
+            else if (Dead)
+                ActionFeed.Add(new QueuedAction { Action = MirAction.Dead, Direction = Direction, Location = CurrentLocation });
 
-            return ob.Drop(Settings.DropRange);
-        }
+            BaseSound = (ushort)BaseImage * 10;
 
-        protected virtual bool DropGold(uint gold)
-        {
-            if (EXPOwner != null && EXPOwner.CanGainGold(gold) && !Settings.DropGold)
+            switch (BaseImage)
             {
-                EXPOwner.WinGold(gold);
-                return true;
+                case Monster.Guard:
+                case Monster.Guard2:
+                    Frames = FrameSet.Monsters[0];
+                    break;
+                case Monster.Hen:
+                case Monster.Deer:
+                case Monster.Sheep:
+                case Monster.Wolf:
+                case Monster.Pig:
+                case Monster.Bull:
+                case Monster.DarkBrownWolf:
+                    Frames = FrameSet.Monsters[1];
+                    break;
+                case Monster.Scarecrow:
+                case Monster.HookingCat:
+                case Monster.RakingCat:
+                case Monster.Yob:
+                case Monster.Oma:
+                case Monster.SpittingSpider:
+                case Monster.OmaFighter:
+                case Monster.OmaWarrior:
+                case Monster.CaveBat:
+                case Monster.Skeleton:
+                case Monster.BoneFighter:
+                case Monster.AxeSkeleton:
+                case Monster.BoneWarrior:
+                case Monster.BoneElite:
+                case Monster.Dung:
+                case Monster.Dark:
+                case Monster.WoomaSoldier:
+                case Monster.WoomaFighter:
+                case Monster.WoomaWarrior:
+                case Monster.FlamingWooma:
+                case Monster.WoomaGuardian:
+                case Monster.WoomaTaurus:
+                case Monster.WhimperingBee:
+                case Monster.GiantWorm:
+                case Monster.Centipede:
+                case Monster.BlackMaggot:
+                case Monster.Tongs:
+                case Monster.EvilTongs:
+                case Monster.BugBat:
+                case Monster.WedgeMoth:
+                case Monster.RedBoar:
+                case Monster.BlackBoar:
+                case Monster.SnakeScorpion:
+                case Monster.WhiteBoar:
+                case Monster.EvilSnake:
+                case Monster.SpiderBat:
+                case Monster.VenomSpider:
+                case Monster.GangSpider:
+                case Monster.GreatSpider:
+                case Monster.LureSpider:
+                case Monster.BigApe:
+                case Monster.EvilApe:
+                case Monster.GrayEvilApe:
+                case Monster.RedEvilApe:
+                case Monster.BigRat:
+                case Monster.ZumaArcher:
+                case Monster.Ghoul:
+                case Monster.KingHog:
+                case Monster.Shinsu1:
+                case Monster.SpiderFrog:
+                case Monster.HoroBlaster:
+                case Monster.BlueHoroBlaster:
+                case Monster.KekTal:
+                case Monster.VioletKekTal:
+                case Monster.RoninGhoul:
+                case Monster.ToxicGhoul:
+                case Monster.BoneCaptain:
+                case Monster.BoneSpearman:
+                case Monster.BoneBlademan:
+                case Monster.BoneArcher:
+                case Monster.Minotaur:
+                case Monster.IceMinotaur:
+                case Monster.ElectricMinotaur:
+                case Monster.WindMinotaur:
+                case Monster.FireMinotaur:
+                case Monster.ShellNipper:
+                case Monster.Keratoid:
+                case Monster.GiantKeratoid:
+                case Monster.SkyStinger:
+                case Monster.SandWorm:
+                case Monster.VisceralWorm:
+                case Monster.RedSnake:
+                case Monster.TigerSnake:
+                case Monster.GiantWhiteSnake:
+                case Monster.BlueSnake:
+                case Monster.YellowSnake:
+                case Monster.AxeOma:
+                case Monster.SwordOma:
+                case Monster.WingedOma:
+                case Monster.FlailOma:
+                case Monster.OmaGuard:
+                case Monster.KatanaGuard:
+                case Monster.RedFrogSpider:
+                case Monster.BrownFrogSpider:
+                case Monster.HalloweenScythe:
+                case Monster.GhastlyLeecher:
+                case Monster.CyanoGhast:
+                case Monster.RedTurtle:
+                case Monster.GreenTurtle:
+                case Monster.BlueTurtle:
+                case Monster.TowerTurtle:
+                case Monster.DarkTurtle:
+                case Monster.DarkSwordOma:
+                case Monster.DarkAxeOma:
+                case Monster.DarkWingedOma:
+                case Monster.BoneWhoo:
+                case Monster.DarkSpider:
+                case Monster.ViscusWorm:
+                case Monster.ViscusCrawler:
+                case Monster.CrawlerLave:
+                case Monster.DarkYob:
+                case Monster.ValeBat:
+                case Monster.Weaver:
+                case Monster.VenomWeaver:
+                case Monster.CrackingWeaver:
+                case Monster.ArmingWeaver:
+                case Monster.SpiderWarrior:
+                case Monster.SpiderBarbarian:
+                    Frames = FrameSet.Monsters[2];
+                    break;
+                case Monster.CannibalPlant:
+                    Frames = FrameSet.Monsters[3];
+                    break;
+                case Monster.ForestYeti:
+                case Monster.CaveMaggot:
+                case Monster.FrostYeti:
+                    Frames = FrameSet.Monsters[4];
+                    break;
+                case Monster.Scorpion:
+                    Frames = FrameSet.Monsters[5];
+                    break;
+                case Monster.ChestnutTree:
+                case Monster.EbonyTree:
+                case Monster.LargeMushroom:
+                case Monster.CherryTree:
+                case Monster.ChristmasTree:
+                case Monster.SnowTree:
+                    Frames = FrameSet.Monsters[6];
+                    break;
+                case Monster.EvilCentipede:
+                    Frames = FrameSet.Monsters[7];
+                    break;
+                case Monster.BugBatMaggot:
+                    Frames = FrameSet.Monsters[8];
+                    break;
+                case Monster.CrystalSpider:
+                case Monster.WhiteFoxman:
+                case Monster.LightTurtle:
+                case Monster.CrystalWeaver:
+                    Frames = FrameSet.Monsters[9];
+                    break;
+                case Monster.RedMoonEvil:
+                    Frames = FrameSet.Monsters[10];
+                    break;
+                case Monster.ZumaStatue:
+                case Monster.ZumaGuardian:
+                case Monster.FrozenZumaStatue:
+                case Monster.FrozenZumaGuardian:
+                    Stoned = info.Extra;
+                    Frames = FrameSet.Monsters[11];
+                    break;
+                case Monster.ZumaTaurus:
+                    Stoned = info.Extra;
+                    Frames = FrameSet.Monsters[12];
+                    break;
+                case Monster.RedThunderZuma:
+                case Monster.FrozenRedZuma:
+                    Stoned = info.Extra;
+                    Frames = FrameSet.Monsters[13];
+                    break;
+                case Monster.KingScorpion:
+                case Monster.DarkDevil:
+                case Monster.RightGuard:
+                case Monster.LeftGuard:
+                case Monster.MinotaurKing:
+                    Frames = FrameSet.Monsters[14];
+                    break;
+                case Monster.BoneFamiliar:
+                    Frames = FrameSet.Monsters[15];
+                    if (!info.Extra) ActionFeed.Add(new QueuedAction { Action = MirAction.Appear, Direction = Direction, Location = CurrentLocation });
+                    break;
+                case Monster.Shinsu:
+                    Frames = FrameSet.Monsters[16];
+                    if (!info.Extra) ActionFeed.Add(new QueuedAction { Action = MirAction.Appear, Direction = Direction, Location = CurrentLocation });
+                    break;
+                case Monster.DigOutZombie:
+                    Frames = FrameSet.Monsters[17];
+                    break;
+                case Monster.ClZombie:
+                case Monster.NdZombie:
+                case Monster.CrawlerZombie:
+                    Frames = FrameSet.Monsters[18];
+                    break;
+                case Monster.ShamanZombie:
+                    Frames = FrameSet.Monsters[19];
+                    break;
+                case Monster.Khazard:
+                case Monster.FinialTurtle:
+                    Frames = FrameSet.Monsters[20];
+                    break;
+                case Monster.BoneLord:
+                    Frames = FrameSet.Monsters[21];
+                    break;
+                case Monster.FrostTiger:
+                case Monster.FlameTiger:
+                    SitDown = info.Extra;
+                    Frames = FrameSet.Monsters[22];
+                    break;
+                case Monster.Yimoogi:
+                case Monster.RedYimoogi:
+                case Monster.Snake10:
+                case Monster.Snake11:
+                case Monster.Snake12:
+                case Monster.Snake13:
+                case Monster.Snake14:
+                case Monster.Snake15:
+                case Monster.Snake16:
+                case Monster.Snake17:
+                    Frames = FrameSet.Monsters[23];
+                    break;
+                case Monster.HolyDeva:
+                    Frames = FrameSet.Monsters[24];
+                    if (!info.Extra) ActionFeed.Add(new QueuedAction { Action = MirAction.Appear, Direction = Direction, Location = CurrentLocation });
+                    break;
+                case Monster.GreaterWeaver:
+                case Monster.RootSpider:
+                    Frames = FrameSet.Monsters[25];
+                    break;
+                case Monster.BombSpider:
+                case Monster.MutatedHugger:
+                    Frames = FrameSet.Monsters[26];
+                    break;
+                case Monster.CrossbowOma:
+                case Monster.DarkCrossbowOma:
+                    Frames = FrameSet.Monsters[27];
+                    break;
+                case Monster.YinDevilNode:
+                case Monster.YangDevilNode:
+                    Frames = FrameSet.Monsters[28];
+                    break;
+                case Monster.OmaKing:
+                    Frames = FrameSet.Monsters[29];
+                    break;
+                case Monster.BlackFoxman:
+                case Monster.RedFoxman:
+                    Frames = FrameSet.Monsters[30];
+                    break;
+                case Monster.TrapRock:
+                    Frames = FrameSet.Monsters[31];
+                    break;
+                case Monster.GuardianRock:
+                    Frames = FrameSet.Monsters[32];
+                    break;
+                case Monster.ThunderElement:
+                case Monster.CloudElement:
+                    Frames = FrameSet.Monsters[33];
+                    break;
+                case Monster.GreatFoxSpirit:
+                    Frames = FrameSet.Monsters[34 + Stage];
+                    break;
+                case Monster.HedgeKekTal:
+                case Monster.BigHedgeKekTal:
+                    Frames = FrameSet.Monsters[39];
+                    break;
+                case Monster.EvilMir:
+                    Frames = FrameSet.Monsters[40];
+                    break;
+                case Monster.DragonStatue:
+                    Frames = FrameSet.Monsters[41 + (byte)Direction];
+                    break;
+                case Monster.ArcherGuard:
+                    Frames = FrameSet.Monsters[47];
+                    break;
+                case Monster.TaoistGuard:
+                    Frames = FrameSet.Monsters[48];
+                    break;
+                case Monster.VampireSpider://SummonVampire
+                    Frames = FrameSet.Monsters[49];
+                    break;
+                case Monster.SpittingToad://SummonToad
+                    Frames = FrameSet.Monsters[50];
+                    break;
+                case Monster.SnakeTotem://SummonSnakes Totem
+                    Frames = FrameSet.Monsters[51];
+                    break;
+                case Monster.CharmedSnake://SummonSnakes Snake
+                    Frames = FrameSet.Monsters[52];
+                    break;
+                case Monster.HighAssassin:
+                    Frames = FrameSet.Monsters[53];
+                    break;
+                case Monster.DarkDustPile:
+                case Monster.MudPile:
+                case Monster.Treasurebox:
+                case Monster.SnowPile:
+                    Frames = FrameSet.Monsters[54];
+                    break;
+                case Monster.Football:
+                    Frames = FrameSet.Monsters[55];
+                    break;
+                case Monster.GingerBreadman:
+                    Frames = FrameSet.Monsters[56];
+                    break;
+                case Monster.DreamDevourer:
+                    Frames = FrameSet.Monsters[57];
+                    break;
+                case Monster.TailedLion:
+                    Frames = FrameSet.Monsters[58];
+                    break;
+                case Monster.Behemoth:
+                    Frames = FrameSet.Monsters[59];
+                    break;
+                case Monster.Hugger:
+                case Monster.ManectricSlave:
+                    Frames = FrameSet.Monsters[60];
+                    break;
+                case Monster.DarkDevourer:
+                    Frames = FrameSet.Monsters[61];
+                    break;
+                case Monster.Snowman:
+                    Frames = FrameSet.Monsters[62];
+                    break;
+                case Monster.GiantEgg:
+                case Monster.IcePillar:
+                    Frames = FrameSet.Monsters[63];
+                    break;
+                case Monster.BlueSanta:
+                    Frames = FrameSet.Monsters[64];
+                    break;
+                case Monster.BattleStandard:
+                    Frames = FrameSet.Monsters[65];
+                    break;
+                case Monster.WingedTigerLord:
+                    Frames = FrameSet.Monsters[66];
+                    break;
+                case Monster.TurtleKing:
+                    Frames = FrameSet.Monsters[67];
+                    break;
+                case Monster.Bush:
+                    Frames = FrameSet.Monsters[68];
+                    break;
+                case Monster.HellSlasher:
+                case Monster.HellCannibal:
+                case Monster.ManectricClub:
+                    Frames = FrameSet.Monsters[69];
+                    break;
+                case Monster.HellPirate:
+                    Frames = FrameSet.Monsters[70];
+                    break;
+                case Monster.HellBolt:
+                case Monster.WitchDoctor:
+                    Frames = FrameSet.Monsters[71];
+                    break;
+                case Monster.HellKeeper:
+                    Frames = FrameSet.Monsters[72];
+                    break;
+                case Monster.ManectricHammer:
+                    Frames = FrameSet.Monsters[73];
+                    break;
+                case Monster.ManectricStaff:
+                    Frames = FrameSet.Monsters[74];
+                    break;
+                case Monster.NamelessGhost:
+                case Monster.DarkGhost:
+                case Monster.ChaosGhost:
+                case Monster.ManectricBlest:
+                case Monster.TrollHammer:
+                case Monster.TrollBomber:
+                case Monster.TrollStoner:
+                case Monster.MutatedManworm:
+                case Monster.CrazyManworm:
+                    Frames = FrameSet.Monsters[75];
+                    break;
+                case Monster.ManectricKing:
+                case Monster.TrollKing:
+                    Frames = FrameSet.Monsters[76];
+                    break;
+                case Monster.FlameSpear:
+                case Monster.FlameMage:
+                case Monster.FlameScythe:
+                case Monster.FlameAssassin:
+                    Frames = FrameSet.Monsters[77];
+                    break;
+                case Monster.FlameQueen:
+                    Frames = FrameSet.Monsters[78];
+                    break;
+                case Monster.HellKnight1:
+                case Monster.HellKnight2:
+                case Monster.HellKnight3:
+                case Monster.HellKnight4:
+                    Frames = FrameSet.Monsters[79];
+                    if (!info.Extra) ActionFeed.Add(new QueuedAction { Action = MirAction.Appear, Direction = Direction, Location = CurrentLocation });
+                    break;
+                case Monster.HellLord:
+                    Frames = FrameSet.Monsters[80];
+                    break;
+                case Monster.WaterGuard:
+                    Frames = FrameSet.Monsters[81];
+                    break;
+                case Monster.IceGuard:
+                case Monster.ElementGuard:
+                    Frames = FrameSet.Monsters[82];
+                    break;
+                case Monster.DemonGuard:
+                    Frames = FrameSet.Monsters[83];
+                    break;
+                case Monster.KingGuard:
+                    Frames = FrameSet.Monsters[84];
+                    break;
+                case Monster.Bunny2:
+                case Monster.Bunny:
+                    Frames = FrameSet.Monsters[85];
+                    break;
+                case Monster.DarkBeast:
+                case Monster.LightBeast:
+                    Frames = FrameSet.Monsters[86];
+                    break;
+                case Monster.WhiteMammoth:
+                case Monster.HardenRhino:
+                    Frames = FrameSet.Monsters[87];
+                    break;
+                case Monster.AncientBringer:
+                    Frames = FrameSet.Monsters[88];
+                    break;
+                case Monster.Jar1:
+                    Frames = FrameSet.Monsters[89];
+                    break;
+                case Monster.SeedingsGeneral:
+                    Frames = FrameSet.Monsters[90];
+                    break;
+                case Monster.Tucson:
+                case Monster.TucsonFighter:
+                    Frames = FrameSet.Monsters[91];
+                    break;
+                case Monster.FrozenDoor:
+                    Frames = FrameSet.Monsters[92];
+                    break;
+                case Monster.TucsonMage:
+                    Frames = FrameSet.Monsters[93];
+                    break;
+                case Monster.TucsonWarrior:
+                    Frames = FrameSet.Monsters[94];
+                    break;
+                case Monster.Armadillo:
+                    Frames = FrameSet.Monsters[95];
+                    break;
+                case Monster.ArmadilloElder:
+                    Frames = FrameSet.Monsters[96];
+                    break;
+                case Monster.TucsonEgg:
+                    Frames = FrameSet.Monsters[97];
+                    break;
+                case Monster.PlaguedTucson:
+                    Frames = FrameSet.Monsters[98];
+                    break;
+                case Monster.SandSnail:
+                    Frames = FrameSet.Monsters[99];
+                    break;
+                case Monster.CannibalTentacles:
+                    Frames = FrameSet.Monsters[100];
+                    break;
+                case Monster.TucsonGeneral:
+                    Frames = FrameSet.Monsters[101];
+                    break;
+                case Monster.GasToad:
+                    Frames = FrameSet.Monsters[102];
+                    break;
+                case Monster.Mantis:
+                    Frames = FrameSet.Monsters[103];
+                    break;
+                case Monster.SwampWarrior:
+                    Frames = FrameSet.Monsters[104];
+                    break;
+                case Monster.AssassinBird:
+                    Frames = FrameSet.Monsters[105];
+                    break;
+                case Monster.RhinoWarrior:
+                    Frames = FrameSet.Monsters[106];
+                    break;
+                case Monster.RhinoPriest:
+                    Frames = FrameSet.Monsters[107];
+                    break;
+                case Monster.SwampSlime:
+                    Frames = FrameSet.Monsters[108];
+                    break;
+                case Monster.RockGuard:
+                    Frames = FrameSet.Monsters[109];
+                    break;
+                case Monster.MudWarrior:
+                    Frames = FrameSet.Monsters[110];
+                    break;
+                case Monster.SmallPot:
+                    Frames = FrameSet.Monsters[111];
+                    break;
+                case Monster.TreeQueen:
+                    Frames = FrameSet.Monsters[112];
+                    break;
+                case Monster.ShellFighter:
+                    Frames = FrameSet.Monsters[113];
+                    break;
+                case Monster.DarkBaboon:
+                    Frames = FrameSet.Monsters[114];
+                    break;
+                case Monster.TwinHeadBeast:
+                    Frames = FrameSet.Monsters[115];
+                    break;
+                case Monster.OmaCannibal:
+                    Frames = FrameSet.Monsters[116];
+                    break;
+                case Monster.OmaBlest:
+                    Frames = FrameSet.Monsters[121];
+                    break;
+                case Monster.OmaSlasher:
+                    Frames = FrameSet.Monsters[117];
+                    break;
+                case Monster.OmaAssassin:
+                    Frames = FrameSet.Monsters[118];
+                    break;
+                case Monster.OmaMage:
+                    Frames = FrameSet.Monsters[119];
+                    break;
+                case Monster.OmaWitchDoctor:
+                    Frames = FrameSet.Monsters[120];
+                    break;
+                case Monster.LightningBead:
+                case Monster.HealingBead:
+                case Monster.PowerUpBead:
+                    Frames = FrameSet.Monsters[122];
+                    break;
+                case Monster.DarkOmaKing:
+                    Frames = FrameSet.Monsters[123];
+                    break;
+                case Monster.CaveMage:
+                    Frames = FrameSet.Monsters[124];
+                    break;
+                case Monster.Mandrill:
+                    Frames = FrameSet.Monsters[125];
+                    break;
+                case Monster.PlagueCrab:
+                    Frames = FrameSet.Monsters[126];
+                    break;
+                case Monster.CreeperPlant:
+                    Frames = FrameSet.Monsters[127];
+                    break;
+                case Monster.SackWarrior:
+                    Frames = FrameSet.Monsters[128];
+                    break;
+                case Monster.WereTiger:
+                    Frames = FrameSet.Monsters[129];
+                    break;
+                case Monster.KingHydrax:
+                    Frames = FrameSet.Monsters[130];
+                    break;
+                case Monster.FloatingWraith:
+                    Frames = FrameSet.Monsters[131];
+                    break;
+                case Monster.ArmedPlant:
+                    Frames = FrameSet.Monsters[132];
+                    break;
+                case Monster.AvengerPlant:
+                    Frames = FrameSet.Monsters[133];
+                    break;
+                case Monster.Nadz:
+                case Monster.AvengingSpirit:
+                    Frames = FrameSet.Monsters[134];
+                    break;
+                case Monster.AvengingWarrior:
+                    Frames = FrameSet.Monsters[135];
+                    break;
+                case Monster.AxePlant:
+                case Monster.ClawBeast:
+                    Frames = FrameSet.Monsters[136];
+                    break;
+                case Monster.WoodBox:
+                    Frames = FrameSet.Monsters[137];
+                    break;
+                case Monster.KillerPlant:
+                    Frames = FrameSet.Monsters[138];
+                    break;
+                case Monster.Hydrax:
+                    Frames = FrameSet.Monsters[139];
+                    break;
+                case Monster.Basiloid:
+                    Frames = FrameSet.Monsters[140];
+                    break;
+                case Monster.HornedMage:
+                    Frames = FrameSet.Monsters[141];
+                    break;
+                case Monster.HornedArcher:
+                case Monster.ColdArcher:
+                    Frames = FrameSet.Monsters[142];
+                    break;
+                case Monster.HornedWarrior:
+                    Frames = FrameSet.Monsters[143];
+                    break;
+                case Monster.FloatingRock:
+                    Frames = FrameSet.Monsters[144];
+                    break;
+                case Monster.ScalyBeast:
+                    Frames = FrameSet.Monsters[145];
+                    break;
+                case Monster.HornedSorceror:
+                    Frames = FrameSet.Monsters[146];
+                    break;
+                case Monster.BoulderSpirit:
+                    Frames = FrameSet.Monsters[147];
+                    break;
+                case Monster.HornedCommander:
+                    Frames = FrameSet.Monsters[148];
+                    break;
+                case Monster.MoonStone:
+                case Monster.SunStone:
+                case Monster.LightningStone:
+                    Frames = FrameSet.Monsters[149];
+                    break;
+                case Monster.Turtlegrass:
+                    Frames = FrameSet.Monsters[150];
+                    break;
+                case Monster.Mantree:
+                    Frames = FrameSet.Monsters[151];
+                    break;
+                case Monster.Bear:
+                    Frames = FrameSet.Monsters[152];
+                    break;
+                case Monster.Leopard:
+                    Frames = FrameSet.Monsters[153];
+                    break;
+                case Monster.ChieftainArcher:
+                    Frames = FrameSet.Monsters[154];
+                    break;
+                case Monster.ChieftainSword:
+                    Frames = FrameSet.Monsters[155];
+                    break;
+                case Monster.StoningSpider: //StoneTrap
+                    Frames = FrameSet.Monsters[156];
+                    break;
+                case Monster.DarkSpirit:
+                case Monster.FrozenSoldier:
+                    Frames = FrameSet.Monsters[157];
+                    break;
+                case Monster.FrozenFighter:
+                    Frames = FrameSet.Monsters[158];
+                    break;
+                case Monster.FrozenArcher:
+                    Frames = FrameSet.Monsters[159];
+                    break;
+                case Monster.FrozenKnight:
+                    Frames = FrameSet.Monsters[160];
+                    break;
+                case Monster.FrozenGolem:
+                    Frames = FrameSet.Monsters[161];
+                    break;
+                case Monster.IcePhantom:
+                    Frames = FrameSet.Monsters[162];
+                    break;
+                case Monster.SnowWolf:
+                    Frames = FrameSet.Monsters[163];
+                    break;
+                case Monster.SnowWolfKing:
+                    Frames = FrameSet.Monsters[164];
+                    break;
+                case Monster.WaterDragon:
+                    Frames = FrameSet.Monsters[165];
+                    break;
+                case Monster.BlackTortoise:
+                    Frames = FrameSet.Monsters[166];
+                    break;
+                case Monster.Manticore:
+                    Frames = FrameSet.Monsters[167];
+                    break;
+                case Monster.DragonWarrior:
+                    Frames = FrameSet.Monsters[168];
+                    break;
+                case Monster.DragonArcher:
+                    Frames = FrameSet.Monsters[169];
+                    break;
+                case Monster.Kirin:
+                    Frames = FrameSet.Monsters[170];
+                    break;
+                case Monster.Guard3:
+                    Frames = FrameSet.Monsters[171];
+                    break;
+                case Monster.ArcherGuard3:
+                    Frames = FrameSet.Monsters[172];
+                    break;
+
+                //173 blank
+
+                case Monster.FrozenMiner:
+                    Frames = FrameSet.Monsters[174];
+                    break;
+                case Monster.FrozenAxeman:
+                    Frames = FrameSet.Monsters[175];
+                    break;
+                case Monster.FrozenMagician:
+                    Frames = FrameSet.Monsters[176];
+                    break;
+                case Monster.SnowYeti:
+                    Frames = FrameSet.Monsters[177];
+                    break;
+                case Monster.IceCrystalSoldier:
+                    Frames = FrameSet.Monsters[178];
+                    break;
+                case Monster.DarkWraith:
+                    Frames = FrameSet.Monsters[179];
+                    break;
+                case Monster.CrystalBeast:
+                    Frames = FrameSet.Monsters[180];
+                    break;
+                case Monster.RedOrb:
+                case Monster.BlueOrb:
+                case Monster.YellowOrb:
+                case Monster.GreenOrb:
+                case Monster.WhiteOrb:
+                    Frames = FrameSet.Monsters[181];
+                    break;
+                case Monster.FatalLotus:
+                    Frames = FrameSet.Monsters[182];
+                    break;
+                case Monster.AntCommander:
+                    Frames = FrameSet.Monsters[183];
+                    break;
+                case Monster.CargoBoxwithlogo:
+                case Monster.CargoBox:
+                    Frames = FrameSet.Monsters[184];
+                    break;
+                case Monster.Doe:
+                    Frames = FrameSet.Monsters[185];
+                    break;
+                case Monster.AngryReindeer:
+                    Frames = FrameSet.Monsters[186];
+                    break;
+                case Monster.DeathCrawler:
+                    Frames = FrameSet.Monsters[187];
+                    break;
+                case Monster.UndeadWolf:
+                case Monster.Demonwolf:
+                    Frames = FrameSet.Monsters[188];
+                    break;
+                case Monster.BurningZombie:
+                case Monster.FrozenZombie:
+                    Frames = FrameSet.Monsters[189];
+                    break;
+                case Monster.MudZombie:
+                    Frames = FrameSet.Monsters[190];
+                    break;
+                case Monster.BloodBaboon:
+                    Frames = FrameSet.Monsters[191];
+                    break;
+                case Monster.FightingCat:
+                case Monster.PoisonHugger:
+                    Frames = FrameSet.Monsters[192];
+                    break;
+                case Monster.FireCat:
+                    Frames = FrameSet.Monsters[193];
+                    break;
+                case Monster.CatWidow:
+                    Frames = FrameSet.Monsters[194];
+                    break;
+                case Monster.StainHammerCat:
+                    Frames = FrameSet.Monsters[195];
+                    break;
+                case Monster.BlackHammerCat:
+                    Frames = FrameSet.Monsters[196];
+                    break;
+                case Monster.StrayCat:
+                    Frames = FrameSet.Monsters[197];
+                    break;
+                case Monster.CatShaman:
+                    Frames = FrameSet.Monsters[198];
+                    break;
+                case Monster.Jar2:
+                    Frames = FrameSet.Monsters[199];
+                    break;
+                case Monster.RestlessJar:
+                    Frames = FrameSet.Monsters[200];
+                    break;
+                case Monster.FlamingMutant:
+                case Monster.FlyingStatue:
+                case Monster.ManectricClaw:
+                    Frames = FrameSet.Monsters[201];
+                    break;
+                case Monster.StoningStatue:
+                    Frames = FrameSet.Monsters[202];
+                    break;
+                case Monster.ArcherGuard2:
+                    Frames = FrameSet.Monsters[203];
+                    break;
+                case Monster.Tornado:
+                    Frames = FrameSet.Monsters[204];
+                    break;
+
+                case Monster.HellBomb1:
+                    Frames = FrameSet.Monsters[205];
+                    break;
+                case Monster.HellBomb2:
+                    Frames = FrameSet.Monsters[206];
+                    break;
+                case Monster.HellBomb3:
+                    Frames = FrameSet.Monsters[207];
+                    break;
+
+
+                case Monster.BabyPig:
+                case Monster.Chick:
+                case Monster.Kitten:
+                case Monster.BabySkeleton:
+                case Monster.Baekdon:
+                case Monster.Wimaen:
+                case Monster.BlackKitten:
+                case Monster.BabyDragon:
+                case Monster.OlympicFlame:
+                case Monster.BabySnowMan:
+                case Monster.Frog:
+                case Monster.BabyMonkey:
+                    Frames = FrameSet.HelperPets[((ushort)BaseImage) - 10000];
+                    break;
+                case Monster.SabukGate:
+                    Frames = FrameSet.Gates[0];
+                    break;
+                case Monster.GiGateSouth:
+                    Frames = FrameSet.Gates[1];
+                    break;
+                case Monster.GiGateEast:
+                    Frames = FrameSet.Gates[2];
+                    break;
+                case Monster.GiGateWest:
+                    Frames = FrameSet.Gates[3];
+                    break;
+                case Monster.PalaceWallLeft:
+                    Frames = FrameSet.Walls[0];
+                    break;
+                case Monster.PalaceWall1:
+                    Frames = FrameSet.Walls[1];
+                    break;
+                case Monster.PalaceWall2:
+                    Frames = FrameSet.Walls[2];
+                    break;
+                case Monster.SSabukWall1:
+                    Frames = FrameSet.Walls[3];
+                    break;
+                case Monster.SSabukWall2:
+                    Frames = FrameSet.Walls[4];
+                    break;
+                case Monster.SSabukWall3:
+                    Frames = FrameSet.Walls[5];
+                    break;
+                default:
+                    Frames = FrameSet.Monsters[0];
+                    break;
             }
 
-            uint count = gold / Settings.MaxDropGold == 0 ? 1 : gold / Settings.MaxDropGold + 1;
-            for (int i = 0; i < count; i++)
+            SetAction();
+            SetCurrentEffects();
+
+            if (CurrentAction == MirAction.Standing)
             {
-                ItemObject ob = new ItemObject(this, i != count - 1 ? Settings.MaxDropGold : gold % Settings.MaxDropGold)
+                PlayAppearSound();
+                FrameIndex = CMain.Random.Next(Frame.Count);
+            }
+            else if(CurrentAction == MirAction.SitDown)
+            {
+                PlayAppearSound();
+            }
+
+            NextMotion -= NextMotion % 100;
+
+            if (Settings.Effect)
+            {
+                switch (BaseImage)
                 {
-                    Owner = EXPOwner,
-                    OwnerTime = Envir.Time + Settings.Minute,
-                };
-
-                ob.Drop(Settings.DropRange);
+                    case Monster.Weaver:
+                    case Monster.VenomWeaver:
+                    case Monster.ArmingWeaver:
+                    case Monster.ValeBat:
+                    case Monster.CrackingWeaver:
+                    case Monster.GreaterWeaver:
+                    case Monster.CrystalWeaver:
+                        Effects.Add(new Effect(Libraries.Effect, 680, 20, 20 * Frame.Interval, this) { DrawBehind = true, Repeat = true });
+                        break;
+                }
             }
-
-            return true;
         }
 
         public override void Process()
         {
-            base.Process();
+            bool update = CMain.Time >= NextMotion || GameScene.CanMove;
+            SkipFrames = ActionFeed.Count > 1;
 
-            RefreshNameColour();
+            ProcessFrames();
 
-            if (Target != null && (Target.CurrentMap != CurrentMap || !Target.IsAttackTarget(this) || !Functions.InRange(CurrentLocation, Target.CurrentLocation, Globals.DataRange)))
-                Target = null;
-
-            for (int i = SlaveList.Count - 1; i >= 0; i--)
-                if (SlaveList[i].Dead || SlaveList[i].Node == null)
-                    SlaveList.RemoveAt(i);
-
-            if (Dead && Envir.Time >= DeadTime)
+            if (Frame == null)
             {
-                CurrentMap.RemoveObject(this);
-                if (Master != null)
-                {
-                    Master.Pets.Remove(this);
-                    Master = null;
-                }
-
-                Despawn();
-                return;
+                DrawFrame = 0;
+                DrawWingFrame = 0;
             }
-
-            if(Master != null && TameTime > 0 && Envir.Time >= TameTime)
+            else
             {
-                Master.Pets.Remove(this);
-                Master = null;
-                Broadcast(new S.ObjectName { ObjectID = ObjectID, Name = Name });
-            }
-
-            ProcessAI();
-
-            ProcessBuffs();
-            ProcessRegen();
-            ProcessPoison();
-
-
-         /*   if (!HealthChanged) return;
-
-            HealthChanged = false;
-            
-            BroadcastHealthChange();*/
-        }
-
-        public override void SetOperateTime()
-        {
-            long time = Envir.Time + 2000;
-
-            if (DeadTime < time && DeadTime > Envir.Time)
-                time = DeadTime;
-
-            if (OwnerTime < time && OwnerTime > Envir.Time)
-                time = OwnerTime;
-
-            if (ExpireTime < time && ExpireTime > Envir.Time)
-                time = ExpireTime;
-
-            if (PKPointTime < time && PKPointTime > Envir.Time)
-                time = PKPointTime;
-
-            if (LastHitTime < time && LastHitTime > Envir.Time)
-                time = LastHitTime;
-
-            if (EXPOwnerTime < time && EXPOwnerTime > Envir.Time)
-                time = EXPOwnerTime;
-
-            if (SearchTime < time && SearchTime > Envir.Time)
-                time = SearchTime;
-
-            if (RoamTime < time && RoamTime > Envir.Time)
-                time = RoamTime;
-
-
-            if (ShockTime < time && ShockTime > Envir.Time)
-                time = ShockTime;
-
-            if (RegenTime < time && RegenTime > Envir.Time && Health < MaxHealth)
-                time = RegenTime;
-
-            if (RageTime < time && RageTime > Envir.Time)
-                time = RageTime;
-
-            if (HallucinationTime < time && HallucinationTime > Envir.Time)
-                time = HallucinationTime;
-
-            if (ActionTime < time && ActionTime > Envir.Time)
-                time = ActionTime;
-
-            if (MoveTime < time && MoveTime > Envir.Time)
-                time = MoveTime;
-
-            if (AttackTime < time && AttackTime > Envir.Time)
-                time = AttackTime;
-
-            if (HealTime < time && HealTime > Envir.Time && HealAmount > 0)
-                time = HealTime;
-
-            if (BrownTime < time && BrownTime > Envir.Time)
-                time = BrownTime;
-
-            for (int i = 0; i < ActionList.Count; i++)
-            {
-                if (ActionList[i].Time >= time && ActionList[i].Time > Envir.Time) continue;
-                time = ActionList[i].Time;
-            }
-
-            for (int i = 0; i < PoisonList.Count; i++)
-            {
-                if (PoisonList[i].TickTime >= time && PoisonList[i].TickTime > Envir.Time) continue;
-                time = PoisonList[i].TickTime;
-            }
-
-            for (int i = 0; i < Buffs.Count; i++)
-            {
-                if (Buffs[i].ExpireTime >= time && Buffs[i].ExpireTime > Envir.Time) continue;
-                time = Buffs[i].ExpireTime;
+                DrawFrame = Frame.Start + (Frame.OffSet * (byte)Direction) + FrameIndex;
+                DrawWingFrame = Frame.EffectStart + (Frame.EffectOffSet * (byte)Direction) + EffectFrameIndex;
             }
 
 
-            if (OperateTime <= Envir.Time || time < OperateTime)
-                OperateTime = time;
-        }
+            #region Moving OffSet
 
-        public override void Process(DelayedAction action)
-        {
-            switch (action.Type)
+            switch (CurrentAction)
             {
-                case DelayedType.Damage:
-                    CompleteAttack(action.Params);
-                    break;
-                case DelayedType.RangeDamage:
-                    CompleteRangeAttack(action.Params);
-                    break;
-                case DelayedType.Die:
-                    CompleteDeath(action.Params);
-                    break;
-                case DelayedType.Recall:
-                    PetRecall();
-                    break;
-            }
-        }
-
-        public void PetRecall()
-        {
-            if (Master == null) return;
-            if (!Teleport(Master.CurrentMap, Master.Back))
-                Teleport(Master.CurrentMap, Master.CurrentLocation);
-        }
-        protected virtual void CompleteAttack(IList<object> data)
-        {
-            MapObject target = (MapObject)data[0];
-            int damage = (int)data[1];
-            DefenceType defence = (DefenceType)data[2];
-
-            if (target == null || !target.IsAttackTarget(this) || target.CurrentMap != CurrentMap || target.Node == null) return;
-
-            target.Attacked(this, damage, defence);
-        }
-
-        protected virtual void CompleteRangeAttack(IList<object> data)
-        {
-            MapObject target = (MapObject)data[0];
-            int damage = (int)data[1];
-            DefenceType defence = (DefenceType)data[2];
-
-            if (target == null || !target.IsAttackTarget(this) || target.CurrentMap != CurrentMap || target.Node == null) return;
-
-            target.Attacked(this, damage, defence);
-        }
-
-        protected virtual void CompleteDeath(IList<object> data)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected virtual void ProcessRegen()
-        {
-            if (Dead) return;
-
-            int healthRegen = 0;
-
-            if (CanRegen)
-            {
-                RegenTime = Envir.Time + RegenDelay;
-
-
-                if (HP < MaxHP)
-                    healthRegen += (int)(MaxHP * 0.022F) + 1;
-            }
-
-
-            if (Envir.Time > HealTime)
-            {
-                HealTime = Envir.Time + HealDelay;
-
-                if (HealAmount > 5)
-                {
-                    healthRegen += 5;
-                    HealAmount -= 5;
-                }
-                else
-                {
-                    healthRegen += HealAmount;
-                    HealAmount = 0;
-                }
-            }
-
-            if (healthRegen > 0) ChangeHP(healthRegen);
-            if (HP == MaxHP) HealAmount = 0;
-        }
-        protected virtual void ProcessPoison()
-        {
-            PoisonType type = PoisonType.None;
-            ArmourRate = 1F;
-            DamageRate = 1F;
-
-            for (int i = PoisonList.Count - 1; i >= 0; i--)
-            {
-                if (Dead) return;
-
-                Poison poison = PoisonList[i];
-                if (poison.Owner != null && poison.Owner.Node == null)
-                {
-                    PoisonList.RemoveAt(i);
-                    continue;
-                }
-
-                if (Envir.Time > poison.TickTime)
-                {
-                    poison.Time++;
-                    poison.TickTime = Envir.Time + poison.TickSpeed;
-
-                    if (poison.Time >= poison.Duration)
-                        PoisonList.RemoveAt(i);
-
-                    if (poison.PType == PoisonType.Green || poison.PType == PoisonType.Bleeding)
+                case MirAction.Walking:
+                case MirAction.Running:
+                case MirAction.Pushed:
+                case MirAction.DashL:
+                case MirAction.DashR:
+                    if (Frame == null)
                     {
-                        if (EXPOwner == null || EXPOwner.Dead)
-                        {
-                            EXPOwner = poison.Owner;
-                            EXPOwnerTime = Envir.Time + EXPOwnerDelay;
-                        }
-                        else if (EXPOwner == poison.Owner)
-                            EXPOwnerTime = Envir.Time + EXPOwnerDelay;
+                        OffSetMove = Point.Empty;
+                        Movement = CurrentLocation;
+                        break;
+                    }
+                    int i = CurrentAction == MirAction.Running ? 2 : 1;
 
-                        if (poison.PType == PoisonType.Bleeding)
-                        {
-                            Broadcast(new S.ObjectEffect { ObjectID = ObjectID, Effect = SpellEffect.Bleeding, EffectType = 0 });
-                        }
+                    Movement = Functions.PointMove(CurrentLocation, Direction, CurrentAction == MirAction.Pushed ? 0 : -i);
 
-                        //ChangeHP(-poison.Value);
-                        PoisonDamage(-poison.Value, poison.Owner);
-                        if (PoisonStopRegen)
-                            RegenTime = Envir.Time + RegenDelay;
+                    int count = Frame.Count;
+                    int index = FrameIndex;
+
+                    if (CurrentAction == MirAction.DashR || CurrentAction == MirAction.DashL)
+                    {
+                        count = 3;
+                        index %= 3;
                     }
 
-                    if (poison.PType == PoisonType.DelayedExplosion)
+                    switch (Direction)
                     {
-                        if (Envir.Time > ExplosionInflictedTime) ExplosionInflictedStage++;
-
-                        if (!ProcessDelayedExplosion(poison))
-                        {
-                            ExplosionInflictedStage = 0;
-                            ExplosionInflictedTime = 0;
-
-                            if (Dead) break; //temp to stop crashing
-
-                            PoisonList.RemoveAt(i);
-                            continue;
-                        }
-                    }
-                }
-
-                switch (poison.PType)
-                {
-                    case PoisonType.Red:
-                        ArmourRate -= 0.5F;
-                        break;
-                    case PoisonType.Stun:
-                        DamageRate += 0.5F;
-                        break;
-                    case PoisonType.Slow:
-                        MoveSpeed += 100;
-                        AttackSpeed += 100;
- 
-                        if (poison.Time >= poison.Duration)
-                        {
-                            MoveSpeed = Info.MoveSpeed;
-                            AttackSpeed = Info.AttackSpeed;
-                        }
-                        break;
-                }
-                type |= poison.PType;
-                /*
-                if ((int)type < (int)poison.PType)
-                    type = poison.PType;
-                 */
-            }
-
-            
-            if (type == CurrentPoison) return;
-
-            CurrentPoison = type;
-            Broadcast(new S.ObjectPoisoned { ObjectID = ObjectID, Poison = type });
-        }
-
-        private bool ProcessDelayedExplosion(Poison poison)
-        {
-            if (Dead) return false;
-
-            if (ExplosionInflictedStage == 0)
-            {
-                Broadcast(new S.ObjectEffect { ObjectID = ObjectID, Effect = SpellEffect.DelayedExplosion, EffectType = 0 });
-                return true;
-            }
-            if (ExplosionInflictedStage == 1)
-            {
-                if (Envir.Time > ExplosionInflictedTime)
-                    ExplosionInflictedTime = poison.TickTime + 3000;
-                Broadcast(new S.ObjectEffect { ObjectID = ObjectID, Effect = SpellEffect.DelayedExplosion, EffectType = 1 });
-                return true;
-            }
-            if (ExplosionInflictedStage == 2)
-            {
-                Broadcast(new S.ObjectEffect { ObjectID = ObjectID, Effect = SpellEffect.DelayedExplosion, EffectType = 2 });
-                if (poison.Owner != null)
-                {
-                    switch (poison.Owner.Race)
-                    {
-                        case ObjectType.Player:
-                            PlayerObject caster = (PlayerObject)poison.Owner;
-                            DelayedAction action = new DelayedAction(DelayedType.Magic, Envir.Time, poison.Owner, caster.GetMagic(Spell.DelayedExplosion), poison.Value, this.CurrentLocation);
-                            CurrentMap.ActionList.Add(action);
-                            //Attacked((PlayerObject)poison.Owner, poison.Value, DefenceType.MAC, false);
+                        case MirDirection.Up:
+                            OffSetMove = new Point(0, (int)((MapControl.CellHeight * i / (float)(count)) * (index + 1)));
                             break;
-                        case ObjectType.Monster://this is in place so it could be used by mobs if one day someone chooses to
-                            Attacked((MonsterObject)poison.Owner, poison.Value, DefenceType.MAC);
+                        case MirDirection.UpRight:
+                            OffSetMove = new Point((int)((-MapControl.CellWidth * i / (float)(count)) * (index + 1)), (int)((MapControl.CellHeight * i / (float)(count)) * (index + 1)));
+                            break;
+                        case MirDirection.Right:
+                            OffSetMove = new Point((int)((-MapControl.CellWidth * i / (float)(count)) * (index + 1)), 0);
+                            break;
+                        case MirDirection.DownRight:
+                            OffSetMove = new Point((int)((-MapControl.CellWidth * i / (float)(count)) * (index + 1)), (int)((-MapControl.CellHeight * i / (float)(count)) * (index + 1)));
+                            break;
+                        case MirDirection.Down:
+                            OffSetMove = new Point(0, (int)((-MapControl.CellHeight * i / (float)(count)) * (index + 1)));
+                            break;
+                        case MirDirection.DownLeft:
+                            OffSetMove = new Point((int)((MapControl.CellWidth * i / (float)(count)) * (index + 1)), (int)((-MapControl.CellHeight * i / (float)(count)) * (index + 1)));
+                            break;
+                        case MirDirection.Left:
+                            OffSetMove = new Point((int)((MapControl.CellWidth * i / (float)(count)) * (index + 1)), 0);
+                            break;
+                        case MirDirection.UpLeft:
+                            OffSetMove = new Point((int)((MapControl.CellWidth * i / (float)(count)) * (index + 1)), (int)((MapControl.CellHeight * i / (float)(count)) * (index + 1)));
                             break;
                     }
-                    LastHitter = poison.Owner;
-                }
-                return false;
-            }
-            return false;
-        }
 
-
-        private void ProcessBuffs()
-        {
-            bool refresh = false;
-            for (int i = Buffs.Count - 1; i >= 0; i--)
-            {
-                Buff buff = Buffs[i];
-
-                if (Envir.Time <= buff.ExpireTime) continue;
-
-                Buffs.RemoveAt(i);
-
-                switch (buff.Type)
-                {
-                    case BuffType.MoonLight:
-                    case BuffType.Hiding:
-                    case BuffType.DarkBody:
-                        Hidden = false;
-                        break;
-                }
-
-                refresh = true;
-            }
-
-            if (refresh) RefreshAll();
-        }
-        protected virtual void ProcessAI()
-        {
-            if (Dead) return;
-
-            if (Master != null)
-            {
-                if ((Master.PMode == PetMode.Both || Master.PMode == PetMode.MoveOnly))
-                {
-                    if (!Functions.InRange(CurrentLocation, Master.CurrentLocation, Globals.DataRange) || CurrentMap != Master.CurrentMap)
-                        PetRecall();
-                }
-
-                if (Master.PMode == PetMode.MoveOnly || Master.PMode == PetMode.None)
-                    Target = null;
-            }
-
-            ProcessSearch();
-            ProcessRoam();
-            ProcessTarget();
-        }
-        protected virtual void ProcessSearch()
-        {
-            if (Envir.Time < SearchTime) return;
-            if (Master != null && (Master.PMode == PetMode.MoveOnly || Master.PMode == PetMode.None)) return;
-            
-            SearchTime = Envir.Time + SearchDelay;
-
-            if (CurrentMap.Inactive(5)) return;
-
-            //Stacking or Infront of master - Move
-            bool stacking = CheckStacked();
-
-            if (CanMove && ((Master != null && Master.Front == CurrentLocation) || stacking))
-            {
-                //Walk Randomly
-                if (!Walk(Direction))
-                {
-                    MirDirection dir = Direction;
-
-                    switch (Envir.Random.Next(3)) // favour Clockwise
-                    {
-                        case 0:
-                            for (int i = 0; i < 7; i++)
-                            {
-                                dir = Functions.NextDir(dir);
-
-                                if (Walk(dir))
-                                    break;
-                            }
-                            break;
-                        default:
-                            for (int i = 0; i < 7; i++)
-                            {
-                                dir = Functions.PreviousDir(dir);
-
-                                if (Walk(dir))
-                                    break;
-                            }
-                            break;
-                    }
-                }
-            }
-
-            if (Target == null || Envir.Random.Next(3) == 0)
-                FindTarget();
-        }
-        protected virtual void ProcessRoam()
-        {
-            if (Target != null || Envir.Time < RoamTime) return;
-
-            if (ProcessRoute()) return;
-
-            if (CurrentMap.Inactive(30)) return;
-
-            if (Master != null)
-            {
-                MoveTo(Master.Back);
-                return;
-            }
-
-            RoamTime = Envir.Time + RoamDelay;
-            if (Envir.Random.Next(10) != 0) return;
-
-            switch (Envir.Random.Next(3)) //Face Walk
-            {
-                case 0:
-                    Turn((MirDirection)Envir.Random.Next(8));
+                    OffSetMove = new Point(OffSetMove.X % 2 + OffSetMove.X, OffSetMove.Y % 2 + OffSetMove.Y);
                     break;
                 default:
-                    Walk(Direction);
+                    OffSetMove = Point.Empty;
+                    Movement = CurrentLocation;
                     break;
             }
-        }
-        protected virtual void ProcessTarget()
-        {
-            if (Target == null || !CanAttack) return;
 
-            if (InAttackRange())
+            #endregion
+
+
+            DrawY = Movement.Y > CurrentLocation.Y ? Movement.Y : CurrentLocation.Y;
+
+            DrawLocation = new Point((Movement.X - User.Movement.X + MapControl.OffSetX) * MapControl.CellWidth, (Movement.Y - User.Movement.Y + MapControl.OffSetY) * MapControl.CellHeight);
+            DrawLocation.Offset(-OffSetMove.X, -OffSetMove.Y);
+            DrawLocation.Offset(User.OffSetMove);
+            DrawLocation = DrawLocation.Add(ManualLocationOffset);
+            DrawLocation.Offset(GlobalDisplayLocationOffset);
+
+            if (BodyLibrary != null && update)
             {
-                Attack();
-                if (Target.Dead)
-                    FindTarget();
-
-                return;
+                FinalDrawLocation = DrawLocation.Add(BodyLibrary.GetOffSet(DrawFrame));
+                DisplayRectangle = new Rectangle(DrawLocation, BodyLibrary.GetTrueSize(DrawFrame));
             }
 
-            if (Envir.Time < ShockTime)
-            {
-                Target = null;
-                return;
-            }
-            
-            MoveTo(Target.CurrentLocation);
-        }
-        protected virtual bool InAttackRange()
-        {
-            if (Target.CurrentMap != CurrentMap) return false;
+            for (int i = 0; i < Effects.Count; i++)
+                Effects[i].Process();
 
-            return Target.CurrentLocation != CurrentLocation && Functions.InRange(CurrentLocation, Target.CurrentLocation, 1);
+            Color colour = DrawColour;
+            if (Poison == PoisonType.None)
+                DrawColour = Color.White;
+            if (Poison.HasFlag(PoisonType.Green))
+                DrawColour = Color.Green;
+            if (Poison.HasFlag(PoisonType.Red))
+                DrawColour = Color.Red;
+            if (Poison.HasFlag(PoisonType.Bleeding))
+                DrawColour = Color.DarkRed;
+            if (Poison.HasFlag(PoisonType.Slow))
+                DrawColour = Color.Purple;
+            if (Poison.HasFlag(PoisonType.Stun))
+                DrawColour = Color.Yellow;
+            if (Poison.HasFlag(PoisonType.Frozen))
+                DrawColour = Color.Blue;
+                //Effects.Add(new Effect(Libraries.Magic4, 2520, 20, 3200, this) { Repeat = true });
+            if (Poison.HasFlag(PoisonType.Paralysis) || Poison.HasFlag(PoisonType.LRParalysis))
+                DrawColour = Color.Gray;
+            if (Poison.HasFlag(PoisonType.DelayedExplosion))
+                DrawColour = Color.Orange;
+            if (colour != DrawColour) GameScene.Scene.MapControl.TextureValid = false;
         }
-        protected virtual void FindTarget()
-        {
-            //if (CurrentMap.Players.Count < 1) return;
-            Map Current = CurrentMap;
 
-            for (int d = 0; d <= Info.ViewRange; d++)
+        public bool SetAction()
+        {
+            if (NextAction != null && !GameScene.CanMove)
             {
-                for (int y = CurrentLocation.Y - d; y <= CurrentLocation.Y + d; y++)
+                switch (NextAction.Action)
                 {
-                    if (y < 0) continue;
-                    if (y >= Current.Height) break;
-
-                    for (int x = CurrentLocation.X - d; x <= CurrentLocation.X + d; x += Math.Abs(y - CurrentLocation.Y) == d ? 1 : d*2)
-                    {
-                        if (x < 0) continue;
-                        if (x >= Current.Width) break;
-                        Cell cell = Current.Cells[x, y];
-                        if (cell.Objects == null || !cell.Valid) continue;
-                        for (int i = 0; i < cell.Objects.Count; i++)
-                        {
-                            MapObject ob = cell.Objects[i];
-                            switch (ob.Race)
-                            {
-                                case ObjectType.Monster:
-                                    if (!ob.IsAttackTarget(this)) continue;
-                                    if (ob.Hidden && (!CoolEye || Level < ob.Level)) continue;
-                                    if (this is TrapRock && ob.InTrapRock) continue;
-                                    Target = ob;
-                                    return;
-                                case ObjectType.Player:
-                                    PlayerObject playerob = (PlayerObject)ob;
-                                    if (!ob.IsAttackTarget(this)) continue;
-                                    if (playerob.GMGameMaster || ob.Hidden && (!CoolEye || Level < ob.Level) || Envir.Time < HallucinationTime) continue;
-
-                                    Target = ob;
-
-                                    if (Master != null)
-                                    {
-                                        for (int j = 0; j < playerob.Pets.Count; j++)
-                                        {
-                                            MonsterObject pet = playerob.Pets[j];
-
-                                            if (!pet.IsAttackTarget(this)) continue;
-                                            Target = pet;
-                                            break;
-                                        }
-                                    }
-                                    return;
-                                default:
-                                    continue;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        protected virtual bool ProcessRoute()
-        {
-            if (Route.Count < 1) return false;
-
-            RoamTime = Envir.Time + 500;
-
-            if (CurrentLocation == Route[RoutePoint].Location)
-            {
-                if (Route[RoutePoint].Delay > 0 && !Waiting)
-                {
-                    Waiting = true;
-                    RoamTime = Envir.Time + RoamDelay + Route[RoutePoint].Delay;
-                    return true;
-                }
-
-                Waiting = false;
-                RoutePoint++;
-            }
-
-            if (RoutePoint > Route.Count - 1) RoutePoint = 0;
-
-            if (!CurrentMap.ValidPoint(Route[RoutePoint].Location)) return true;
-
-            MoveTo(Route[RoutePoint].Location);
-
-            return true;
-        }
-
-        protected virtual void MoveTo(Point location)
-        {
-            if (CurrentLocation == location) return;
-
-            bool inRange = Functions.InRange(location, CurrentLocation, 1);
-
-            if (inRange)
-            {
-                if (!CurrentMap.ValidPoint(location)) return;
-                Cell cell = CurrentMap.GetCell(location);
-                if (cell.Objects != null)
-                    for (int i = 0; i < cell.Objects.Count; i++)
-                    {
-                        MapObject ob = cell.Objects[i];
-                        if (!ob.Blocking) continue;
-                        return;
-                    }
-            }
-
-            MirDirection dir = Functions.DirectionFromPoint(CurrentLocation, location);
-
-            if (Walk(dir)) return;
-
-            switch (Envir.Random.Next(2)) //No favour
-            {
-                case 0:
-                    for (int i = 0; i < 7; i++)
-                    {
-                        dir = Functions.NextDir(dir);
-
-                        if (Walk(dir))
-                            return;
-                    }
-                    break;
-                default:
-                    for (int i = 0; i < 7; i++)
-                    {
-                        dir = Functions.PreviousDir(dir);
-
-                        if (Walk(dir))
-                            return;
-                    }
-                    break;
-            }
-        }
-
-        public virtual void Turn(MirDirection dir)
-        {
-            if (!CanMove) return;
-
-            Direction = dir;
-                
-            InSafeZone = CurrentMap.GetSafeZone(CurrentLocation) != null;
-
-
-            Cell cell = CurrentMap.GetCell(CurrentLocation);
-
-            for (int i = 0; i < cell.Objects.Count; i++)
-            {
-                if (cell.Objects[i].Race != ObjectType.Spell) continue;
-                SpellObject ob = (SpellObject)cell.Objects[i];
-
-                ob.ProcessSpell(this);
-                //break;
-            }
-
-
-            Broadcast(new S.ObjectTurn { ObjectID = ObjectID, Direction = Direction, Location = CurrentLocation });
-        }
-
-
-        public virtual bool Walk(MirDirection dir) 
-        {
-            if (!CanMove) return false;
-
-            Point location = Functions.PointMove(CurrentLocation, dir, 1);
-
-            if (!CurrentMap.ValidPoint(location)) return false;
-
-            Cell cell = CurrentMap.GetCell(location);
-
-            if (cell.Objects != null)
-            for (int i = 0; i < cell.Objects.Count; i++)
-            {
-                MapObject ob = cell.Objects[i];
-                if (!ob.Blocking || Race == ObjectType.Creature) continue;
-
-                return false;
-            }
-
-            CurrentMap.GetCell(CurrentLocation).Remove(this);
-
-            Direction = dir;
-            RemoveObjects(dir, 1);
-            CurrentLocation = location;
-            CurrentMap.GetCell(CurrentLocation).Add(this);
-            AddObjects(dir, 1);
-
-            if (Hidden)
-            {
-                Hidden = false;
-
-                for (int i = 0; i < Buffs.Count; i++)
-                {
-                    if (Buffs[i].Type != BuffType.Hiding) continue;
-
-                    Buffs[i].ExpireTime = 0;
-                    break;
-                }
-            }
-
-
-            CellTime = Envir.Time + 500;
-            ActionTime = Envir.Time + 300;
-            MoveTime = Envir.Time + MoveSpeed;
-            if (MoveTime > AttackTime)
-                AttackTime = MoveTime;
-
-            InSafeZone = CurrentMap.GetSafeZone(CurrentLocation) != null;
-
-            Broadcast(new S.ObjectWalk { ObjectID = ObjectID, Direction = Direction, Location = CurrentLocation });
-
-
-            cell = CurrentMap.GetCell(CurrentLocation);
-
-            for (int i = 0; i < cell.Objects.Count; i++)
-            {
-                if (cell.Objects[i].Race != ObjectType.Spell) continue;
-                SpellObject ob = (SpellObject)cell.Objects[i];
-
-                ob.ProcessSpell(this);
-                //break;
-            }
-
-            return true;
-        }
-        protected virtual void Attack()
-        {
-            if (BindingShotCenter) ReleaseBindingShot();
-
-            ShockTime = 0;
-            
-            if (!Target.IsAttackTarget(this))
-            {
-                Target = null;
-                return;
-            }
-
-
-            Direction = Functions.DirectionFromPoint(CurrentLocation, Target.CurrentLocation);
-            Broadcast(new S.ObjectAttack { ObjectID = ObjectID, Direction = Direction, Location = CurrentLocation });
-
-
-            ActionTime = Envir.Time + 300;
-            AttackTime = Envir.Time + AttackSpeed;
-
-            int damage = GetAttackPower(MinDC, MaxDC);
-
-            if (damage == 0) return;
-
-            Target.Attacked(this, damage);
-        }
-
-        public void ReleaseBindingShot()
-        {
-            if (!BindingShotCenter) return;
-
-            ShockTime = 0;
-            Broadcast(GetInfo());//update clients in range (remove effect)
-            BindingShotCenter = false;
-
-            //the centertarget is escaped so make all shocked mobs awake (3x3 from center)
-            Point place = CurrentLocation;
-            for (int y = place.Y - 1; y <= place.Y + 1; y++)
-            {
-                if (y < 0) continue;
-                if (y >= CurrentMap.Height) break;
-
-                for (int x = place.X - 1; x <= place.X + 1; x++)
-                {
-                    if (x < 0) continue;
-                    if (x >= CurrentMap.Width) break;
-
-                    Cell cell = CurrentMap.GetCell(x, y);
-                    if (!cell.Valid || cell.Objects == null) continue;
-
-                    for (int i = 0; i < cell.Objects.Count; i++)
-                    {
-                        MapObject targetob = cell.Objects[i];
-                        if (targetob == null || targetob.Node == null || targetob.Race != ObjectType.Monster) continue;
-                        if (((MonsterObject)targetob).ShockTime == 0) continue;
-
-                        //each centerTarget has its own effect which needs to be cleared when no longer shocked
-                        if (((MonsterObject)targetob).BindingShotCenter) ((MonsterObject)targetob).ReleaseBindingShot();
-                        else ((MonsterObject)targetob).ShockTime = 0;
-
-                        break;
-                    }
-                }
-            }
-        }
-
-        public bool FindNearby(int distance)
-        {
-            for (int d = 0; d <= distance; d++)
-            {
-                for (int y = CurrentLocation.Y - d; y <= CurrentLocation.Y + d; y++)
-                {
-                    if (y < 0) continue;
-                    if (y >= CurrentMap.Height) break;
-
-                    for (int x = CurrentLocation.X - d; x <= CurrentLocation.X + d; x += Math.Abs(y - CurrentLocation.Y) == d ? 1 : d * 2)
-                    {
-                        if (x < 0) continue;
-                        if (x >= CurrentMap.Width) break;
-                        if (!CurrentMap.ValidPoint(x, y)) continue;
-                        Cell cell = CurrentMap.GetCell(x, y);
-                        if (cell.Objects == null) continue;
-
-                        for (int i = 0; i < cell.Objects.Count; i++)
-                        {
-                            MapObject ob = cell.Objects[i];
-                            switch (ob.Race)
-                            {
-                                case ObjectType.Monster:
-                                case ObjectType.Player:
-                                    if (!ob.IsAttackTarget(this)) continue;
-                                    if (ob.Hidden && (!CoolEye || Level < ob.Level)) continue;
-                                    if (ob.Race == ObjectType.Player)
-                                    {
-                                        PlayerObject player = ((PlayerObject)ob);
-                                        if (player.GMGameMaster) continue;
-                                    }
-                                    return true;
-                                default:
-                                    continue;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return false;
-        }
-        public bool FindFriendsNearby(int distance)
-        {
-            for (int d = 0; d <= distance; d++)
-            {
-                for (int y = CurrentLocation.Y - d; y <= CurrentLocation.Y + d; y++)
-                {
-                    if (y < 0) continue;
-                    if (y >= CurrentMap.Height) break;
-
-                    for (int x = CurrentLocation.X - d; x <= CurrentLocation.X + d; x += Math.Abs(y - CurrentLocation.Y) == d ? 1 : d * 2)
-                    {
-                        if (x < 0) continue;
-                        if (x >= CurrentMap.Width) break;
-                        if (!CurrentMap.ValidPoint(x, y)) continue;
-                        Cell cell = CurrentMap.GetCell(x, y);
-                        if (cell.Objects == null) continue;
-
-                        for (int i = 0; i < cell.Objects.Count; i++)
-                        {
-                            MapObject ob = cell.Objects[i];
-                            switch (ob.Race)
-                            {
-                                case ObjectType.Monster:
-                                case ObjectType.Player:
-                                    if (ob == this || ob.Dead) continue;
-                                    if (ob.IsAttackTarget(this)) continue;
-                                    if (ob.Race == ObjectType.Player)
-                                    {
-                                        PlayerObject player = ((PlayerObject)ob);
-                                        if (player.GMGameMaster) continue;
-                                    }
-                                    return true;
-                                default:
-                                    continue;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        public List<MapObject> FindAllNearby(int dist, Point location, bool needSight = true)
-        {
-            List<MapObject> targets = new List<MapObject>();
-            for (int d = 0; d <= dist; d++)
-            {
-                for (int y = location.Y - d; y <= location.Y + d; y++)
-                {
-                    if (y < 0) continue;
-                    if (y >= CurrentMap.Height) break;
-                    if ((y < location.Y - d + 1) || (y > location.Y + d - 1)) continue;
-
-                    for (int x = location.X - d; x <= location.X + d; x += Math.Abs(y - location.Y) == d ? 1 : d * 2)
-                    {
-                        if (x < 0) continue;
-                        if (x >= CurrentMap.Width) break;
-                        if ((x < location.Y - d + 1) || (x > location.X + d - 1)) continue;
-
-                        Cell cell = CurrentMap.GetCell(x, y);
-                        if (!cell.Valid || cell.Objects == null) continue;
-
-                        for (int i = 0; i < cell.Objects.Count; i++)
-                        {
-                            MapObject ob = cell.Objects[i];
-                            switch (ob.Race)
-                            {
-                                case ObjectType.Monster:
-                                    targets.Add(ob);
-                                    continue;
-                                default:
-                                    continue;
-                            }
-                        }
-                    }
-                }
-            }
-            return targets;
-        }
-
-        protected List<MapObject> FindAllTargets(int dist, Point location, bool needSight = true)
-        {
-            List<MapObject> targets = new List<MapObject>();
-            for (int d = 0; d <= dist; d++)
-            {
-                for (int y = location.Y - d; y <= location.Y + d; y++)
-                {
-                    if (y < 0) continue;
-                    if (y >= CurrentMap.Height) break;
-
-                    for (int x = location.X - d; x <= location.X + d; x += Math.Abs(y - location.Y) == d ? 1 : d * 2)
-                    {
-                        if (x < 0) continue;
-                        if (x >= CurrentMap.Width) break;                    
-
-                        Cell cell = CurrentMap.GetCell(x, y);
-                        if (!cell.Valid || cell.Objects == null) continue;
-
-                        for (int i = 0; i < cell.Objects.Count; i++)
-                        {
-                            MapObject ob = cell.Objects[i];
-                            switch (ob.Race)
-                            {
-                                case ObjectType.Monster:
-                                case ObjectType.Player:
-                                    if (!ob.IsAttackTarget(this)) continue;
-                                    if (ob.Hidden && (!CoolEye || Level < ob.Level) && needSight) continue;
-                                    if (ob.Race == ObjectType.Player)
-                                    {
-                                        PlayerObject player = ((PlayerObject)ob);
-                                        if (player.GMGameMaster) continue;
-                                    }
-                                    targets.Add(ob);
-                                    continue;
-                                default:
-                                    continue;
-                            }
-                        }
-                    }
-                }
-            }
-            return targets;
-        }
-
-        public override bool IsAttackTarget(PlayerObject attacker)
-        {
-            if (attacker == null || attacker.Node == null) return false;
-            if (Dead) return false;
-            if (Master == null) return true;
-            if (attacker.AMode == AttackMode.Peace) return false;
-            if (Master == attacker) return attacker.AMode == AttackMode.All;
-            if (Master.Race == ObjectType.Player && (attacker.InSafeZone || InSafeZone)) return false;
-
-            switch (attacker.AMode)
-            {
-                case AttackMode.Group:
-                    return Master.GroupMembers == null || !Master.GroupMembers.Contains(attacker);
-                case AttackMode.Guild:
-                    {
-                        if (!(Master is PlayerObject)) return false;
-                        PlayerObject master = (PlayerObject)Master;
-                        return master.MyGuild == null || master.MyGuild != attacker.MyGuild;
-                    }
-                case AttackMode.EnemyGuild:
-                    {
-                        if (!(Master is PlayerObject)) return false;
-                        PlayerObject master = (PlayerObject)Master;
-                        return (master.MyGuild != null && attacker.MyGuild != null) && master.MyGuild.IsEnemy(attacker.MyGuild);
-                    }
-                case AttackMode.RedBrown:
-                    return Master.PKPoints >= 200 || Envir.Time < Master.BrownTime;
-                default:
-                    return true;
-            }
-        }
-        public override bool IsAttackTarget(MonsterObject attacker)
-        {
-            if (attacker == null || attacker.Node == null) return false;
-            if (Dead || attacker == this) return false;
-            if (attacker.Race == ObjectType.Creature) return false;
-
-            if (attacker.Info.AI == 6) // Guard
-            {
-                if (Info.AI != 1 && Info.AI != 2 && Info.AI != 3 && (Master == null || Master.PKPoints >= 200)) //Not Dear/Hen/Tree/Pets or Red Master 
-                    return true;
-            }
-            else if (attacker.Info.AI == 58) // Tao Guard - attacks Pets
-            {
-                if (Info.AI != 1 && Info.AI != 2 && Info.AI != 3) //Not Dear/Hen/Tree
-                    return true;
-            }
-            else if (Master != null) //Pet Attacked
-            {
-                if (attacker.Master == null) //Wild Monster
-                    return true;
-                
-                //Pet Vs Pet
-                if (Master == attacker.Master)
-                    return false;
-
-                if (Envir.Time < ShockTime) //Shocked
-                    return false;
-
-                if (Master.Race == ObjectType.Player && attacker.Master.Race == ObjectType.Player && (Master.InSafeZone || attacker.Master.InSafeZone)) return false;
-
-                switch (attacker.Master.AMode)
-                {
-                    case AttackMode.Group:
-                        if (Master.GroupMembers != null && Master.GroupMembers.Contains((PlayerObject)attacker.Master)) return false;
-                        break;
-                    case AttackMode.Guild:
-                        break;
-                    case AttackMode.EnemyGuild:
-                        break;
-                    case AttackMode.RedBrown:
-                        if (attacker.Master.PKPoints < 200 || Envir.Time > attacker.Master.BrownTime) return false;
-                        break;
-                    case AttackMode.Peace:
+                    case MirAction.Walking:
+                    case MirAction.Pushed:
                         return false;
                 }
+            }
 
-                for (int i = 0; i < Master.Pets.Count; i++)
-                    if (Master.Pets[i].EXPOwner == attacker.Master) return true;
+            //IntelligentCreature
+            switch (BaseImage)
+            {
+                case Monster.BabyPig:
+                case Monster.Chick:
+                case Monster.Kitten:
+                case Monster.BabySkeleton:
+                case Monster.Baekdon:
+                case Monster.Wimaen:
+                case Monster.BlackKitten:
+                case Monster.BabyDragon:
+                case Monster.OlympicFlame:
+                case Monster.BabySnowMan:
+                case Monster.Frog:
+                case Monster.BabyMonkey:
+                    BodyLibrary = Libraries.Pets[((ushort)BaseImage) - 10000];
+                    break;
+                    break;
+            }
 
-                for (int i = 0; i < attacker.Master.Pets.Count; i++)
+            if (ActionFeed.Count == 0)
+            {
+                CurrentAction = Stoned ? MirAction.Stoned : MirAction.Standing;
+                if (CurrentAction == MirAction.Standing) CurrentAction = SitDown ? MirAction.SitDown : MirAction.Standing;
+
+                Frames.Frames.TryGetValue(CurrentAction, out Frame);
+
+                if (MapLocation != CurrentLocation)
                 {
-                    MonsterObject ob = attacker.Master.Pets[i];
-                    if (ob == Target || ob.Target == this) return true;
+                    GameScene.Scene.MapControl.RemoveObject(this);
+                    MapLocation = CurrentLocation;
+                    GameScene.Scene.MapControl.AddObject(this);
                 }
 
-                return Master.LastHitter == attacker.Master;
-            }
-            else if (attacker.Master != null) //Pet Attacking Wild Monster
-            {
-                if (Envir.Time < ShockTime) //Shocked
-                    return false;
+                FrameIndex = 0;
 
-                for (int i = 0; i < attacker.Master.Pets.Count; i++)
+                if (Frame == null) return false;
+
+                FrameInterval = Frame.Interval;
+            }
+            else
+            {
+                QueuedAction action = ActionFeed[0];
+                ActionFeed.RemoveAt(0);
+
+                CurrentAction = action.Action;
+                CurrentLocation = action.Location;
+                Direction = action.Direction;
+
+                Point temp;
+                switch (CurrentAction)
                 {
-                    MonsterObject ob = attacker.Master.Pets[i];
-                    if (ob == Target || ob.Target == this) return true;
+                    case MirAction.Walking:
+                    case MirAction.Pushed:
+                        int i = CurrentAction == MirAction.Running ? 2 : 1;
+                        temp = Functions.PointMove(CurrentLocation, Direction, CurrentAction == MirAction.Pushed ? 0 : -i);
+                        break;
+                    default:
+                        temp = CurrentLocation;
+                        break;
                 }
 
-                if (Target == attacker.Master)
-                    return true;
+                temp = new Point(action.Location.X, temp.Y > CurrentLocation.Y ? temp.Y : CurrentLocation.Y);
+
+                if (MapLocation != temp)
+                {
+                    GameScene.Scene.MapControl.RemoveObject(this);
+                    MapLocation = temp;
+                    GameScene.Scene.MapControl.AddObject(this);
+                }
+
+
+                switch (CurrentAction)
+                {
+                    case MirAction.Pushed:
+                        Frames.Frames.TryGetValue(MirAction.Walking, out Frame);
+                        break;
+                    case MirAction.AttackRange1:
+                        if (!Frames.Frames.TryGetValue(CurrentAction, out Frame))
+                            Frames.Frames.TryGetValue(MirAction.Attack1, out Frame);
+                        break;
+                    case MirAction.AttackRange2:
+                        if (!Frames.Frames.TryGetValue(CurrentAction, out Frame))
+                            Frames.Frames.TryGetValue(MirAction.Attack2, out Frame);
+                        break;
+                    case MirAction.AttackRange3:
+                        if (!Frames.Frames.TryGetValue(CurrentAction, out Frame))
+                            Frames.Frames.TryGetValue(MirAction.Attack3, out Frame);
+                        break;
+                    case MirAction.Special:
+                        if (!Frames.Frames.TryGetValue(CurrentAction, out Frame))
+                            Frames.Frames.TryGetValue(MirAction.Attack1, out Frame);
+                        break;
+                    case MirAction.Skeleton:
+                        if (!Frames.Frames.TryGetValue(CurrentAction, out Frame))
+                            Frames.Frames.TryGetValue(MirAction.Dead, out Frame);
+                        break;
+                    case MirAction.Hide:
+                        switch (BaseImage)
+                        {
+                            case Monster.Shinsu1:
+                                BodyLibrary = Libraries.Monsters[(ushort)Monster.Shinsu];
+                                BaseImage = Monster.Shinsu;
+                                BaseSound = (ushort)BaseImage * 10;
+                                Frames = FrameSet.Monsters[16];
+                                Frames.Frames.TryGetValue(CurrentAction, out Frame);
+                                break;
+                            default:
+                                Frames.Frames.TryGetValue(CurrentAction, out Frame);
+                                break;
+                        }
+                        break;
+                    case MirAction.Dead:
+                        switch (BaseImage)
+                        {
+                            case Monster.Shinsu:
+                            case Monster.Shinsu1:
+                            case Monster.HolyDeva:
+                            case Monster.GuardianRock:
+                            case Monster.CharmedSnake://SummonSnakes
+                            case Monster.HellKnight1:
+                            case Monster.HellKnight2:
+                            case Monster.HellKnight3:
+                            case Monster.HellKnight4:
+                            case Monster.HellBomb1:
+                            case Monster.HellBomb2:
+                            case Monster.HellBomb3:
+                                Remove();
+                                return false;
+                            default:
+                                Frames.Frames.TryGetValue(CurrentAction, out Frame);
+                                break;
+                        }
+                        break;
+                    default:
+                        Frames.Frames.TryGetValue(CurrentAction, out Frame);
+                        break;
+
+                }
+
+                FrameIndex = 0;
+
+                if (Frame == null) return false;
+
+                FrameInterval = Frame.Interval;
+
+
+                switch (CurrentAction)
+                {
+                    case MirAction.Appear:
+                        PlaySummonSound();
+                        switch (BaseImage)
+                        {
+                            case Monster.HellKnight1:
+                            case Monster.HellKnight2:
+                            case Monster.HellKnight3:
+                            case Monster.HellKnight4:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)BaseImage], 448, 10, 600, this));
+                                break;
+                        }
+                        break;
+                    case MirAction.Show:
+                        PlayPopupSound();
+                        break;
+                    case MirAction.Pushed:
+                        FrameIndex = Frame.Count - 1;
+                        GameScene.Scene.Redraw();
+                        break;
+                    case MirAction.Walking:
+                        GameScene.Scene.Redraw();
+                        break;
+                    case MirAction.Attack1:
+                        PlayAttackSound();
+                        switch (BaseImage)
+                        {
+                            case Monster.FlamingWooma:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.FlamingWooma], 224 + (int)Direction * 7, 7, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.ZumaTaurus:
+                                if (CurrentAction == MirAction.Attack1)
+                                    Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.ZumaTaurus], 244 + (int)Direction * 8, 8, 8 * FrameInterval, this));
+                                break;
+                            case Monster.MinotaurKing:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.MinotaurKing], 272 + (int)Direction * 6, 6, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.FlamingMutant:///////////////////////////stupple 
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.FlamingMutant], 304 + (int)Direction * 6, 6, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.Demonwolf:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.Demonwolf], 312 + (int)Direction * 3, 3, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.DarkBeast:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.DarkBeast], 296 + (int)Direction * 4, 4, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.HardenRhino:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.HardenRhino], 379 + (int)Direction * 6, 6, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.AncientBringer:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.AncientBringer], 512 + (int)Direction * 6, 6, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.DemonGuard:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.DemonGuard], 288 + (int)Direction * 2, 2, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.Bear:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.Bear], 321 + (int)Direction * 4, 4, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.Manticore:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.Manticore], 505 + (int)Direction * 3, 3, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.StainHammerCat:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.StainHammerCat], 240 + (int)Direction * 5, 5, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.BlackHammerCat:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.BlackHammerCat], 648 + (int)Direction * 11, 11, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.SeedingsGeneral:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.SeedingsGeneral], 536 + (int)Direction * 4, 4, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.TucsonMage:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.TucsonMage], 272 + (int)Direction * 4, 4, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.YinDevilNode:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.YinDevilNode], 26, 26, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.YangDevilNode:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.YangDevilNode], 26, 26, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.GreatFoxSpirit:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.GreatFoxSpirit], 355, 20, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.EvilMir:
+                                Effects.Add(new Effect(Libraries.Dragon, 60, 8, 8 * Frame.Interval, this));
+                                Effects.Add(new Effect(Libraries.Dragon, 68, 14, 14 * Frame.Interval, this));
+                                byte random = (byte)CMain.Random.Next(7);
+                                for (int i = 0; i <= 7 + random; i++)
+                                {
+                                    Point source = new Point(User.CurrentLocation.X + CMain.Random.Next(-7, 7), User.CurrentLocation.Y + CMain.Random.Next(-7, 7));
+
+                                    MapControl.Effects.Add(new Effect(Libraries.Dragon, 230 + (CMain.Random.Next(5) * 10), 5, 400, source, CMain.Time + CMain.Random.Next(1000)));
+                                }
+                                break;
+                            case Monster.CrawlerLave:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.CrawlerLave], 224 + (int)Direction * 6, 6, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.HellKeeper:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.HellKeeper], 32, 8, 8 * Frame.Interval, this));
+                                break;
+                            case Monster.PoisonHugger:
+                                User.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.PoisonHugger], 224, 5, 5 * Frame.Interval, User, 500, false));
+                                break;
+                            case Monster.IcePillar:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.IcePillar], 12, 6, 6 * 100, this));
+                                break;
+                            case Monster.TrollKing:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.TrollKing], 288, 6, 6 * Frame.Interval, this));
+                                break;
+                            case Monster.HellBomb1:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.HellLord], 61, 7, 7 * Frame.Interval, this));
+                                break;
+                            case Monster.HellBomb2:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.HellLord], 79, 9, 9 * Frame.Interval, this));
+                                break;
+                            case Monster.HellBomb3:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.HellLord], 97, 8, 8 * Frame.Interval, this));
+                                break;
+                        }
+                        break;
+                    case MirAction.Attack2:
+                        PlaySecondAttackSound();
+                        switch (BaseImage)
+                        {
+                            case Monster.CrystalSpider:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.CrystalSpider], 272 + (int)Direction * 10, 10, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.Yimoogi:
+                            case Monster.RedYimoogi:
+                            case Monster.Snake10:
+                            case Monster.Snake11:
+                            case Monster.Snake12:
+                            case Monster.Snake13:
+                            case Monster.Snake14:
+                            case Monster.Snake15:
+                            case Monster.Snake16:
+                            case Monster.Snake17:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)BaseImage], 304, 6, Frame.Count * Frame.Interval, this));
+                                Effects.Add(new Effect(Libraries.Magic2, 1280, 10, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.HellCannibal:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.HellCannibal], 310 + (int)Direction * 12, 12, 12 * Frame.Interval, this));
+                                break;
+                            case Monster.ManectricKing:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.ManectricKing], 640 + (int)Direction * 10, 10, 10 * 100, this));
+                                break;
+                        }
+
+                        if ((ushort)BaseImage >= 10000)
+                        {
+                            PlayPetSound();
+                        }
+                        break;
+                    case MirAction.Attack3:
+                        PlayThirdAttackSound();
+                        switch (BaseImage)
+                        {
+                            case Monster.Yimoogi:
+                            case Monster.RedYimoogi:
+                            case Monster.Snake10:
+                            case Monster.Snake11:
+                            case Monster.Snake12:
+                            case Monster.Snake13:
+                            case Monster.Snake14:
+                            case Monster.Snake15:
+                            case Monster.Snake16:
+                            case Monster.Snake17:
+                                Effects.Add(new Effect(Libraries.Magic2, 1330, 10, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.Behemoth:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.Behemoth], 697 + (int)Direction * 7, 7, Frame.Count * Frame.Interval, this));
+                                break;
+                        }
+                        break;
+                    case MirAction.Attack4:                   
+                        break;
+                    case MirAction.AttackRange1:
+                        PlayRangeSound();
+                        switch (BaseImage)
+                        {
+                            case Monster.KingScorpion:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.KingScorpion], 272 + (int)Direction * 8, 8, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.DarkDevil:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.DarkDevil], 272 + (int)Direction * 8, 8, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.ShamanZombie:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.ShamanZombie], 232 + (int)Direction * 12, 6, Frame.Count * Frame.Interval, this));
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.ShamanZombie], 328, 12, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.GuardianRock:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.GuardianRock], 12, 10, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.GreatFoxSpirit:
+                                byte random = (byte)CMain.Random.Next(4);
+                                for (int i = 0; i <= 4 + random; i++)
+                                {
+                                    Point source = new Point(User.CurrentLocation.X + CMain.Random.Next(-7, 7), User.CurrentLocation.Y + CMain.Random.Next(-7, 7));
+
+                                    MapControl.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.GreatFoxSpirit], 375 + (CMain.Random.Next(3) * 20), 20, 1400, source, CMain.Time + CMain.Random.Next(600)));
+                                }
+                                break;
+                            case Monster.EvilMir:
+                                Effects.Add(new Effect(Libraries.Dragon, 90 + (int)Direction * 10, 10, 10 * Frame.Interval, this));
+                                break;
+                            case Monster.DragonStatue:
+                                Effects.Add(new Effect(Libraries.Dragon, 310 + ((int)Direction / 3) * 20, 10, 10 * Frame.Interval, this));
+                                break;
+                            case Monster.TurtleKing:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.TurtleKing], 946, 10, Frame.Count * Frame.Interval, User));
+                                break;
+                            case Monster.FlyingStatue:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.FlyingStatue], 314, 6, 6 * Frame.Interval, this));
+                                //Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.FlyingStatue], 329, 5, 5 * Frame.Interval, this)); this should follow the projectile
+                                break;
+                            case Monster.HellBolt:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.HellBolt], 304, 11, 11 * 100, this));
+                                break;
+                            case Monster.WitchDoctor:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.WitchDoctor], 304, 9, 9 * 100, this));
+                                break;
+                            case Monster.DarkDevourer:
+                                User.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.DarkDevourer], 480, 7, 7 * Frame.Interval, User));
+                                break;
+                            case Monster.DreamDevourer:
+                                User.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.DreamDevourer], 264, 7, 7 * Frame.Interval, User));
+                                break;
+                            case Monster.ManectricKing:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.ManectricKing], 720, 12, 12 * 100, this));
+                                break;
+                            case Monster.IcePillar:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.IcePillar], 26, 6, 8 * 100, this) { Start = CMain.Time + 750 });
+                                break;
+                        }
+
+                        TargetID = (uint)action.Params[0];
+                        break;
+                    case MirAction.AttackRange2:
+                        PlaySecondRangeSound();
+                        TargetID = (uint)action.Params[0];
+                        switch(BaseImage)
+                        {
+                            case Monster.TurtleKing:
+                                byte random = (byte)CMain.Random.Next(4);
+                                for (int i = 0; i <= 4 + random; i++)
+                                {
+                                    Point source = new Point(User.CurrentLocation.X + CMain.Random.Next(-7, 7), User.CurrentLocation.Y + CMain.Random.Next(-7, 7));
+
+                                    Effect ef = new Effect(Libraries.Monsters[(ushort)Monster.TurtleKing], CMain.Random.Next(2) == 0 ? 922 : 934, 12, 1200, source, CMain.Time + CMain.Random.Next(600));
+                                    ef.Played += (o, e) => SoundManager.PlaySound(20000 + (ushort)Spell.HellFire * 10 + 1);
+                                    MapControl.Effects.Add(ef);
+                                }
+                                break;
+                        }
+                        break;
+                    case MirAction.AttackRange3:
+                        PlayThirdRangeSound();
+                        TargetID = (uint)action.Params[0];
+                        switch (BaseImage)
+                        {
+                            case Monster.TurtleKing:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.TurtleKing], 946, 10, Frame.Count * Frame.Interval, User));
+                                break;
+                        }
+                        break;
+                    case MirAction.Struck:
+                        uint attackerID = (uint)action.Params[0];
+                        StruckWeapon = -2;
+                        for (int i = 0; i < MapControl.Objects.Count; i++)
+                        {
+                            MapObject ob = MapControl.Objects[i];
+                            if (ob.ObjectID != attackerID) continue;
+                            if (ob.Race != ObjectType.Player) break;
+                            PlayerObject player = ((PlayerObject)ob);
+                            StruckWeapon = player.Weapon;
+                            if (player.Class != MirClass.Assassin || StruckWeapon == -1) break; //Archer?
+                            StruckWeapon = 1;
+                            break;
+                        }
+                        PlayFlinchSound();
+                        PlayStruckSound();
+                        break;
+                    case MirAction.Die:
+                        switch (BaseImage)
+                        {
+                            case Monster.ManectricKing:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.ManectricKing], 504 + (int)Direction * 9, 9, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.DarkDevil:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.DarkDevil], 336, 6, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.ShamanZombie:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.ShamanZombie], 224, 8, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.RoninGhoul:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.RoninGhoul], 224, 10, Frame.Count * FrameInterval, this));
+                                break;
+                            case Monster.BoneCaptain:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.BoneCaptain], 224 + (int)Direction * 10, 10, Frame.Count * FrameInterval, this));
+                                break;
+                            case Monster.RightGuard:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.RightGuard], 296, 5, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.LeftGuard:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.LeftGuard], 296 + (int)Direction * 5, 5, 5 * Frame.Interval, this));
+                                break;
+                            case Monster.FrostTiger:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.FrostTiger], 304, 10, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.Yimoogi:
+                            case Monster.RedYimoogi:
+                            case Monster.Snake10:
+                            case Monster.Snake11:
+                            case Monster.Snake12:
+                            case Monster.Snake13:
+                            case Monster.Snake14:
+                            case Monster.Snake15:
+                            case Monster.Snake16:
+                            case Monster.Snake17:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.Yimoogi], 352, 10, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.YinDevilNode:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.YinDevilNode], 52, 20, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.YangDevilNode:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.YangDevilNode], 52, 20, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.BlackFoxman:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.BlackFoxman], 224, 10, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.VampireSpider:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.VampireSpider], 296, 5, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.CharmedSnake:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.CharmedSnake], 40, 8, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.Manticore:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.Manticore], 592, 9, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.ValeBat:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.ValeBat], 224, 20, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.SpiderBat:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.SpiderBat], 224, 20, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.VenomWeaver:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.VenomWeaver], 224, 6, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.HellBolt:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.HellBolt], 325, 10, Frame.Count * Frame.Interval, this));
+                                break;
+                            case Monster.SabukGate:
+                                Effects.Add(new Effect(Libraries.Effect, 136, 7, Frame.Count * Frame.Interval, this) { Light = -1 });
+                                break;
+                            case Monster.WingedTigerLord:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.WingedTigerLord], 650 + (int)Direction * 5, 5, Frame.Count * FrameInterval, this));
+                                break;
+                            case Monster.HellKnight1:
+                            case Monster.HellKnight2:
+                            case Monster.HellKnight3:
+                            case Monster.HellKnight4:
+                                Effects.Add(new Effect(Libraries.Monsters[(ushort)BaseImage], 448, 10, 600, this));
+                                break;
+                        }
+                        PlayDieSound();
+                        break;
+                    case MirAction.Dead:
+                        GameScene.Scene.Redraw();
+                        GameScene.Scene.MapControl.SortObject(this);
+                        if (MouseObject == this) MouseObject = null;
+                        if (TargetObject == this) TargetObject = null;
+                        if (MagicObject == this) MagicObject = null;
+
+                        for (int i = 0; i < Effects.Count; i++)
+                            Effects[i].Remove();
+
+                        DeadTime = CMain.Time;
+
+                        break;
+                }
+
             }
 
-            if (Envir.Time < attacker.HallucinationTime) return true;
+            GameScene.Scene.MapControl.TextureValid = false;
 
-            return Envir.Time < attacker.RageTime;
-        }
-        public override bool IsFriendlyTarget(PlayerObject ally)
-        {
-            if (Master == null) return false;
-            if (Master == ally) return true;
+            NextMotion = CMain.Time + FrameInterval;
 
-            switch (ally.AMode)
-            {
-                case AttackMode.Group:
-                    return Master.GroupMembers != null && Master.GroupMembers.Contains(ally);
-                case AttackMode.Guild:
-                    return false;
-                case AttackMode.EnemyGuild:
-                    return true;
-                case AttackMode.RedBrown:
-                    return Master.PKPoints < 200 & Envir.Time > Master.BrownTime;
-            }
             return true;
         }
 
-        public override bool IsFriendlyTarget(MonsterObject ally)
+        public void SetCurrentEffects()
         {
-            if (Master != null) return false;
-            if (ally.Race != ObjectType.Monster) return false;
-            if (ally.Master != null) return false;
+            //BindingShot
+            if (BindingShotCenter && ShockTime > CMain.Time)
+            {
+                int effectid = TrackableEffect.GetOwnerEffectID(ObjectID);
+                if (effectid >= 0)
+                    TrackableEffect.effectlist[effectid].RemoveNoComplete();
 
-            return true;
+                TrackableEffect NetDropped = new TrackableEffect(new Effect(Libraries.MagicC, 7, 1, 1000, this) { Repeat = true, RepeatUntil = (ShockTime - 1500) });
+                NetDropped.Complete += (o1, e1) =>
+                {
+                    SoundManager.PlaySound(20000 + 130 * 10 + 6);//sound M130-6
+                    Effects.Add(new TrackableEffect(new Effect(Libraries.MagicC, 8, 8, 700, this)));
+                };
+                Effects.Add(NetDropped);
+            }
+            else if (BindingShotCenter && ShockTime <= CMain.Time)
+            {
+                int effectid = TrackableEffect.GetOwnerEffectID(ObjectID);
+                if (effectid >= 0)
+                    TrackableEffect.effectlist[effectid].Remove();
+
+                //SoundManager.PlaySound(20000 + 130 * 10 + 6);//sound M130-6
+                //Effects.Add(new TrackableEffect(new Effect(Libraries.ArcherMagic, 8, 8, 700, this)));
+
+                ShockTime = 0;
+                BindingShotCenter = false;
+            }
+
         }
 
-        public override int Attacked(PlayerObject attacker, int damage, DefenceType type = DefenceType.ACAgility, bool damageWeapon = true)
+
+        private void ProcessFrames()
         {
-            if (Target == null && attacker.IsAttackTarget(this))
-            {
-                Target = attacker;
-            }
+            if (Frame == null) return;
 
-            int armour = 0;
-
-            switch (type)
+            switch (CurrentAction)
             {
-                case DefenceType.ACAgility:
-                    if (Envir.Random.Next(Agility + 1) > attacker.Accuracy)
+                case MirAction.Walking:
+                    if (!GameScene.CanMove) return;
+
+                    GameScene.Scene.MapControl.TextureValid = false;
+
+                    if (SkipFrames) UpdateFrame();
+
+                    if (UpdateFrame() >= Frame.Count)
                     {
-                        BroadcastDamageIndicator(DamageType.Miss);
-                        return 0;
+                        FrameIndex = Frame.Count - 1;
+                        SetAction();
                     }
-                    armour = GetDefencePower(MinAC, MaxAC);
-                    break;
-                case DefenceType.AC:
-                    armour = GetDefencePower(MinAC, MaxAC);
-                    break;
-                case DefenceType.MACAgility:
-                    if (Envir.Random.Next(Agility + 1) > attacker.Accuracy)
+                    else
                     {
-                        BroadcastDamageIndicator(DamageType.Miss);
-                        return 0;
-                    }
-                    armour = GetDefencePower(MinMAC, MaxMAC);
-                    break;
-                case DefenceType.MAC:
-                    armour = GetDefencePower(MinMAC, MaxMAC);
-                    break;
-                case DefenceType.Agility:
-                    if (Envir.Random.Next(Agility + 1) > attacker.Accuracy)
-                    {
-                        BroadcastDamageIndicator(DamageType.Miss);
-                        return 0;
+                        switch (FrameIndex)
+                        {
+                            case 0:
+                                PlayWalkSound(true);
+                                break;
+                            case 3:
+                                PlayWalkSound(false);
+                                break;
+                        }
                     }
                     break;
-            }
+                case MirAction.Pushed:
+                    if (!GameScene.CanMove) return;
 
-            armour = (int)Math.Max(int.MinValue, (Math.Min(int.MaxValue, (decimal)(armour * ArmourRate))));
-            damage = (int)Math.Max(int.MinValue, (Math.Min(int.MaxValue, (decimal)(damage * DamageRate))));
+                    GameScene.Scene.MapControl.TextureValid = false;
 
-            if (damageWeapon)
-                attacker.DamageWeapon();
-            damage += attacker.AttackBonus;
+                    FrameIndex -= 2;
 
-            if ((attacker.CriticalRate * Settings.CriticalRateWeight) > Envir.Random.Next(100))
-            {
-                Broadcast(new S.ObjectEffect { ObjectID = ObjectID, Effect = SpellEffect.Critical});
-                damage = Math.Min(int.MaxValue, damage + (int)Math.Floor(damage * (((double)attacker.CriticalDamage / (double)Settings.CriticalDamageWeight) * 10)));
-                BroadcastDamageIndicator(DamageType.Critical);
-            }
-
-            if (armour >= damage)
-            {
-                BroadcastDamageIndicator(DamageType.Miss);
-                return 0;
-            }
-
-            if (attacker.LifeOnHit > 0)
-                attacker.ChangeHP(attacker.LifeOnHit);
-
-            if (Target != this && attacker.IsAttackTarget(this))
-            {
-                if (attacker.Info.MentalState == 2)
-                {
-                    if (Functions.MaxDistance(CurrentLocation, attacker.CurrentLocation) < (8 - attacker.Info.MentalStateLvl))
-                        Target = attacker;
-                }
-                else
-                    Target = attacker;
-            }
-
-            if (BindingShotCenter) ReleaseBindingShot();
-            ShockTime = 0;
-
-            for (int i = PoisonList.Count - 1; i >= 0; i--)
-            {
-                if (PoisonList[i].PType != PoisonType.LRParalysis) continue;
-
-                PoisonList.RemoveAt(i);
-                OperateTime = 0;
-            }
-
-            if (Master != null && Master != attacker)
-                if (Envir.Time > Master.BrownTime && Master.PKPoints < 200)
-                    attacker.BrownTime = Envir.Time + Settings.Minute;
-
-            if (EXPOwner == null || EXPOwner.Dead)
-                EXPOwner = attacker;
-
-            if (EXPOwner == attacker)
-                EXPOwnerTime = Envir.Time + EXPOwnerDelay;
-
-            ushort LevelOffset = (ushort)(Level > attacker.Level ? 0 : Math.Min(10, attacker.Level - Level));
-
-            if (attacker.HasParalysisRing && type != DefenceType.MAC && type != DefenceType.MACAgility && 1 == Envir.Random.Next(1, 15))
-            {
-                ApplyPoison(new Poison { PType = PoisonType.Paralysis, Duration = 5, TickSpeed = 1000 }, attacker);
-            }
-            
-            if (attacker.Freezing > 0 && type != DefenceType.MAC && type != DefenceType.MACAgility)
-            {
-                if ((Envir.Random.Next(Settings.FreezingAttackWeight) < attacker.Freezing) && (Envir.Random.Next(LevelOffset) == 0))
-                    ApplyPoison(new Poison { PType = PoisonType.Slow, Duration = Math.Min(10, (3 + Envir.Random.Next(attacker.Freezing))), TickSpeed = 1000 }, attacker);
-            }
-
-            if (attacker.PoisonAttack > 0 && type != DefenceType.MAC && type != DefenceType.MACAgility)
-            {
-                if ((Envir.Random.Next(Settings.PoisonAttackWeight) < attacker.PoisonAttack) && (Envir.Random.Next(LevelOffset) == 0))
-                    ApplyPoison(new Poison { PType = PoisonType.Green, Duration = 5, TickSpeed = 1000, Value = Math.Min(10, 3 + Envir.Random.Next(attacker.PoisonAttack)) }, attacker);
-            }
-
-            Broadcast(new S.ObjectStruck { ObjectID = ObjectID, AttackerID = attacker.ObjectID, Direction = Direction, Location = CurrentLocation });
-
-            if (attacker.HpDrainRate > 0)
-            {
-                attacker.HpDrain += Math.Max(0, ((float)(damage - armour) / 100) * attacker.HpDrainRate);
-                if (attacker.HpDrain > 2)
-                {
-                    int HpGain = (int)Math.Floor(attacker.HpDrain);
-                    attacker.ChangeHP(HpGain);
-                    attacker.HpDrain -= HpGain;
-
-                }
-            }
-
-            attacker.GatherElement();
-
-            if (attacker.Info.Mentor != 0 && attacker.Info.isMentor)
-            {
-                Buff buff = attacker.Buffs.Where(e => e.Type == BuffType.Mentor).FirstOrDefault();
-                if (buff != null)
-                {
-                    CharacterInfo Mentee = Envir.GetCharacterInfo(attacker.Info.Mentor);
-                    PlayerObject player = Envir.GetPlayer(Mentee.Name);
-                    if (player.CurrentMap == attacker.CurrentMap && Functions.InRange(player.CurrentLocation, attacker.CurrentLocation, Globals.DataRange) && !player.Dead)
+                    if (FrameIndex < 0)
                     {
-                        damage += ((damage / 100) * Settings.MentorDamageBoost);
+                        FrameIndex = 0;
+                        SetAction();
                     }
-                }
+                    break;
+                case MirAction.Show:
+                    if (CMain.Time >= NextMotion)
+                    {
+                        GameScene.Scene.MapControl.TextureValid = false;
+
+                        if (SkipFrames) UpdateFrame();
+
+                        if (UpdateFrame() >= Frame.Count)
+                        {
+                            switch (BaseImage)
+                            {
+                                case Monster.ZumaStatue:
+                                case Monster.ZumaGuardian:
+                                case Monster.RedThunderZuma:
+                                case Monster.ZumaTaurus:
+                                    Stoned = false;
+                                    break;
+                                case Monster.Shinsu:
+                                    BodyLibrary = Libraries.Monsters[(ushort)Monster.Shinsu1];
+                                    BaseImage = Monster.Shinsu1;
+                                    BaseSound = (ushort)BaseImage * 10;
+                                    Frames = FrameSet.Monsters[2];
+                                    break;
+                            }
+
+                            FrameIndex = Frame.Count - 1;
+                            SetAction();
+                        }
+                        else
+                        {
+                            NextMotion += FrameInterval;
+                        }
+                    }
+                    break;
+                case MirAction.Hide:
+                    if (CMain.Time >= NextMotion)
+                    {
+                        GameScene.Scene.MapControl.TextureValid = false;
+
+                        if (SkipFrames) UpdateFrame();
+
+                        if (UpdateFrame() >= Frame.Count)
+                        {
+                            switch (BaseImage)
+                            {
+
+                                case Monster.CannibalPlant:
+                                case Monster.EvilCentipede:
+                                case Monster.DigOutZombie:
+                                    Remove();
+                                    return;
+                                case Monster.ZumaStatue:
+                                case Monster.ZumaGuardian:
+                                case Monster.RedThunderZuma:
+                                case Monster.ZumaTaurus:
+                                    Stoned = true;
+                                    return;
+                            }
+
+
+                            FrameIndex = Frame.Count - 1;
+                            SetAction();
+                        }
+                        else
+                        {
+                            NextMotion += FrameInterval;
+                        }
+                    }
+                    break;
+                case MirAction.Appear:
+                case MirAction.Standing:
+                case MirAction.Stoned:
+                    if (CMain.Time >= NextMotion)
+                    {
+                        GameScene.Scene.MapControl.TextureValid = false;
+
+                        if (SkipFrames) UpdateFrame();
+
+                        if (UpdateFrame() >= Frame.Count)
+                        {
+                            if (CurrentAction == MirAction.Standing)
+                            {
+                                switch (BaseImage)
+                                {
+                                    case Monster.SnakeTotem://SummonSnakes Totem
+                                        if (TrackableEffect.GetOwnerEffectID(this.ObjectID, "SnakeTotem") < 0)
+                                            Effects.Add(new TrackableEffect(new Effect(Libraries.Monsters[(ushort)Monster.SnakeTotem], 2, 10, 1500, this) { Repeat = true }, "SnakeTotem"));
+                                        break;
+                                    case Monster.PalaceWall1:
+                                        //Effects.Add(new Effect(Libraries.Effect, 196, 1, 1000, this) { DrawBehind = true, d });
+                                        //Libraries.Effect.Draw(196, DrawLocation, Color.White, true);
+                                        //Libraries.Effect.DrawBlend(196, DrawLocation, Color.White, true);
+                                        break;
+                                }
+                            }
+
+                            FrameIndex = Frame.Count - 1;
+                            SetAction();
+                        }
+                        else
+                        {
+                            NextMotion += FrameInterval;
+                        }
+                    }
+                    break;
+                case MirAction.Attack1:
+                    if (CMain.Time >= NextMotion)
+                    {
+                        GameScene.Scene.MapControl.TextureValid = false;
+
+                        if (SkipFrames) UpdateFrame();
+
+                        if (UpdateFrame() >= Frame.Count)
+                        {
+                            FrameIndex = Frame.Count - 1;
+                            if (SetAction())
+                            {
+                                switch (BaseImage)
+                                {
+                                    case Monster.EvilCentipede:
+                                        Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.EvilCentipede], 42, 10, 600, this));
+                                        break;
+                                    case Monster.ToxicGhoul:
+                                        SoundManager.PlaySound(BaseSound + 4);
+                                        Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.ToxicGhoul], 224 + (int)Direction * 6, 6, 600, this));
+                                        break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            switch (FrameIndex)
+                            {
+                                case 3:
+                                    {
+                                        PlaySwingSound();
+                                        switch (BaseImage)
+                                        {
+                                            case Monster.RightGuard:
+                                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.RightGuard], 272 + (int)Direction * 3, 3, 3 * Frame.Interval, this));
+                                                break;
+                                            case Monster.LeftGuard:
+                                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.LeftGuard], 272 + (int)Direction * 3, 3, 3 * Frame.Interval, this));
+                                                break;
+                                            case Monster.Shinsu1:
+                                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.Shinsu1], 224 + (int)Direction * 6, 6, 6 * Frame.Interval, this));
+                                                break;
+                                        }
+                                        break;
+                                    }
+                            }
+                            NextMotion += FrameInterval;
+                        }
+                    }
+                    break;
+                case MirAction.SitDown:
+                    if (CMain.Time >= NextMotion)
+                    {
+                        GameScene.Scene.MapControl.TextureValid = false;
+
+                        if (SkipFrames) UpdateFrame();
+
+                        if (UpdateFrame() >= Frame.Count)
+                        {
+                            FrameIndex = Frame.Count - 1;
+                            SetAction();
+                        }
+                        else
+                        {
+                            NextMotion += FrameInterval;
+                        }
+                    }
+                    break;
+                case MirAction.Attack2:
+                    if (CMain.Time >= NextMotion)
+                    {
+                        GameScene.Scene.MapControl.TextureValid = false;
+
+                        if (SkipFrames) UpdateFrame();
+
+                        if (UpdateFrame() >= Frame.Count)
+                        {
+                            FrameIndex = Frame.Count - 1;
+                            SetAction();
+                        }
+                        else
+                        {
+                            switch (FrameIndex)
+                            {
+                                case 1:
+                                    {
+                                        switch (BaseImage)
+                                        {
+                                            case Monster.BabySnowMan:
+                                                if (FrameIndex == 1)
+                                                {
+                                                    if (TrackableEffect.GetOwnerEffectID(this.ObjectID, "SnowmanSnow") < 0)
+                                                        Effects.Add(new TrackableEffect(new Effect(Libraries.Pets[((ushort)BaseImage) - 10000], 208, 11, 1500, this), "SnowmanSnow"));
+                                                }
+                                                break;
+                                        }
+                                    }
+                                    break;
+                                case 3:
+                                    {
+                                        switch(BaseImage)
+                                        {
+                                            case Monster.Behemoth:
+                                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.Behemoth], 768, 10, Frame.Count * Frame.Interval, this));
+                                                break;
+                                            case Monster.FlameQueen:
+                                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.FlameQueen], 720, 9, Frame.Count * Frame.Interval, this));
+                                                break;
+                                        }
+                                    }
+                                    break;
+                                case 10:
+                                    {
+                                        switch(BaseImage)
+                                        {
+                                            case Monster.StoningStatue:
+                                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.StoningStatue], 642, 15, 15 * 100, this));
+                                                break;
+                                        }
+                                    }
+                                    break;
+                                case 19:
+                                    {
+                                        switch(BaseImage)
+                                        {
+                                            case Monster.StoningStatue:
+                                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.StoningStatue], 624, 8, 8 * 100, this));
+                                                break;
+                                        }
+                                    }
+                                    break;
+                            }
+                            if (FrameIndex == 3) PlaySwingSound();
+                            NextMotion += FrameInterval;
+                        }
+                    }
+                    break;
+                case MirAction.Attack3:
+                    if (CMain.Time >= NextMotion)
+                    {
+                        GameScene.Scene.MapControl.TextureValid = false;
+
+                        if (SkipFrames) UpdateFrame();
+
+                        if (UpdateFrame() >= Frame.Count)
+                        {
+                            FrameIndex = Frame.Count - 1;
+                            SetAction();
+                        }
+                        else
+                        {
+                            switch (FrameIndex)
+                            {
+                                case 1:
+                                    switch (BaseImage)
+                                    {
+                                        case Monster.OlympicFlame:
+                                            if (TrackableEffect.GetOwnerEffectID(this.ObjectID, "CreatureFlame") < 0)
+                                                Effects.Add(new TrackableEffect(new Effect(Libraries.Pets[((ushort)BaseImage) - 10000], 280, 4, 800, this), "CreatureFlame"));
+                                            break;
+                                    }
+                                    break;
+                                case 3:
+                                    {
+                                        switch (BaseImage)
+                                        {
+                                            case Monster.WingedTigerLord:
+                                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.WingedTigerLord], 632, 8, 600, this, 0, true));
+                                                break;
+                                        }
+                                    }
+                                    break;
+                                case 4:
+                                    switch (BaseImage)
+                                    {
+                                        case Monster.OlympicFlame:
+                                            if (TrackableEffect.GetOwnerEffectID(this.ObjectID, "CreatureSmoke") < 0)
+                                                Effects.Add(new TrackableEffect(new Effect(Libraries.Pets[((ushort)BaseImage) - 10000], 256, 3, 1000, this), "CreatureSmoke"));
+                                            break;
+                                    }
+                                    break;
+                            }
+                            NextMotion += FrameInterval;
+                        }
+                    }
+                    break;
+                case MirAction.Attack4:
+                    if (CMain.Time >= NextMotion)
+                    {
+                        GameScene.Scene.MapControl.TextureValid = false;
+
+                        if (SkipFrames) UpdateFrame();
+
+                        if (UpdateFrame() >= Frame.Count)
+                        {
+                            FrameIndex = Frame.Count - 1;
+                            SetAction();
+                        }
+                        else
+                        {
+                            NextMotion += FrameInterval;
+                        }
+                    }
+                    break;
+                case MirAction.AttackRange1:
+                    if (CMain.Time >= NextMotion)
+                    {
+                        GameScene.Scene.MapControl.TextureValid = false;
+
+                        if (SkipFrames) UpdateFrame();
+
+                        if (UpdateFrame() >= Frame.Count)
+                        {
+                            switch (BaseImage)
+                            {
+                                case Monster.DragonStatue:
+                                    MapObject ob = MapControl.GetObject(TargetID);
+                                    if (ob != null)
+                                    {
+                                        ob.Effects.Add(new Effect(Libraries.Dragon, 350, 35, 1200, ob));
+                                        SoundManager.PlaySound(BaseSound + 6);
+                                    }
+                                    break;
+                            }
+                            FrameIndex = Frame.Count - 1;
+                            SetAction();
+                        }
+                        else
+                        {
+                            if (FrameIndex == 2) PlaySwingSound();
+                            MapObject ob = null;
+                            Missile missile;
+                            switch (FrameIndex)
+                            {
+                                case 1:
+                                    {
+                                        switch (BaseImage)
+                                        {
+                                            case Monster.GuardianRock:
+                                                ob = MapControl.GetObject(TargetID);
+                                                if (ob != null)
+                                                {
+                                                    ob.Effects.Add(new Effect(Libraries.Magic2, 1410, 10, 400, ob));
+                                                    SoundManager.PlaySound(BaseSound + 6);
+                                                }
+                                                break;
+                                        }
+                                        break;
+                                    }
+                                case 2:
+                                    {
+                                        switch (BaseImage)
+                                        {
+                                            case Monster.LeftGuard:
+                                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.LeftGuard], 336 + (int)Direction * 3, 3, 3 * Frame.Interval, this));
+                                                break;
+                                            case Monster.ManectricClaw:
+                                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.ManectricClaw], 304 + (int)Direction * 10, 10, 10 * Frame.Interval, this));
+                                                break;
+                                            case Monster.FlameSpear:
+                                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.FlameSpear], 544 + (int)Direction * 10, 10, 10 * 100, this));
+                                                break;
+                                        }
+                                        break;
+                                    }
+                                case 4:
+                                    {
+                                        switch (BaseImage)
+                                        {
+                                            case Monster.AxeSkeleton:
+                                                if (MapControl.GetObject(TargetID) != null)
+                                                    CreateProjectile(224, Libraries.Monsters[(ushort)Monster.AxeSkeleton], false, 3, 30, 0);
+                                                break;
+                                            case Monster.Dark:
+                                                if (MapControl.GetObject(TargetID) != null)
+                                                    CreateProjectile(224, Libraries.Monsters[(ushort)Monster.Dark], false, 3, 30, 0);
+                                                break;
+                                            case Monster.ZumaArcher:
+                                            case Monster.BoneArcher:
+                                                if (MapControl.GetObject(TargetID) != null)
+                                                {
+                                                    CreateProjectile(224, Libraries.Monsters[(ushort)Monster.ZumaArcher], false, 1, 30, 0);
+                                                    SoundManager.PlaySound(BaseSound + 6);
+                                                }
+                                                break;
+                                            case Monster.RedThunderZuma:
+                                                ob = MapControl.GetObject(TargetID);
+                                                if (ob != null)
+                                                {
+                                                    ob.Effects.Add(new Effect(Libraries.Dragon, 400 + CMain.Random.Next(3) * 10, 5, 300, ob));
+                                                    SoundManager.PlaySound(BaseSound + 6);
+                                                }
+                                                break;
+                                            case Monster.BoneLord:
+                                                if (MapControl.GetObject(TargetID) != null)
+                                                    CreateProjectile(784, Libraries.Monsters[(ushort)Monster.BoneLord], true, 6, 30, 0, false);
+                                                break;
+                                            case Monster.RightGuard:
+                                                ob = MapControl.GetObject(TargetID);
+                                                if (ob != null)
+                                                {
+                                                    ob.Effects.Add(new Effect(Libraries.Magic2, 10, 5, 300, ob));
+                                                }
+                                                break;
+                                            case Monster.LeftGuard:
+                                                if (MapControl.GetObject(TargetID) != null)
+                                                {
+                                                    CreateProjectile(10, Libraries.Magic, true, 6, 30, 4);
+                                                }
+                                                break;
+                                            case Monster.MinotaurKing:
+                                                ob = MapControl.GetObject(TargetID);
+                                                if (ob != null)
+                                                {
+                                                    ob.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.MinotaurKing], 320, 20, 1000, ob));
+                                                }
+                                                break;
+                                            case Monster.FrostTiger:
+                                                if (MapControl.GetObject(TargetID) != null)
+                                                {
+                                                    CreateProjectile(410, Libraries.Magic2, true, 4, 30, 6);
+                                                }
+                                                break;
+                                            case Monster.Yimoogi:
+                                                ob = MapControl.GetObject(TargetID);
+                                                if (ob != null)
+                                                {
+                                                    ob.Effects.Add(new Effect(Libraries.Magic2, 1250, 15, 1000, ob));
+                                                    SoundManager.PlaySound(BaseSound + 6);
+                                                }
+                                                break;
+                                            case Monster.HolyDeva:
+                                                ob = MapControl.GetObject(TargetID);
+                                                if (ob != null)
+                                                {
+                                                    ob.Effects.Add(new Effect(Libraries.Magic2, 10, 5, 300, ob));
+                                                    SoundManager.PlaySound(BaseSound + 6);
+                                                }
+                                                break;
+                                            case Monster.CrossbowOma:
+                                                if (MapControl.GetObject(TargetID) != null)
+                                                    CreateProjectile(38, Libraries.Monsters[(ushort)Monster.CrossbowOma], false, 1, 30, 6);
+                                                break;
+                                            case Monster.WingedOma:
+                                                missile = CreateProjectile(224, Libraries.Monsters[(ushort)Monster.WingedOma], false, 6, 30, 0, false);
+
+                                                if (missile.Target != null)
+                                                {
+                                                    missile.Complete += (o, e) =>
+                                                    {
+                                                        if (missile.Target.CurrentAction == MirAction.Dead) return;
+                                                        missile.Target.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.WingedOma], 272, 2, 150, missile.Target) { Blend = false });
+                                                    };
+                                                }
+                                                break;
+                                            case Monster.PoisonHugger:
+                                                missile = CreateProjectile(208, Libraries.Monsters[(ushort)Monster.PoisonHugger], true, 1, 30, 0);
+
+                                                if (missile.Target != null)
+                                                {
+                                                    missile.Complete += (o, e) =>
+                                                    {
+                                                        if (missile.Target.CurrentAction == MirAction.Dead) return;
+                                                        missile.Target.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.PoisonHugger], 224, 5, 150, missile.Target) { Blend = true });
+                                                    };
+                                                }
+                                                break;
+                                            case Monster.RedFoxman:
+                                                ob = MapControl.GetObject(TargetID);
+                                                if (ob != null)
+                                                {
+                                                    ob.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.RedFoxman], 224, 9, 300, ob));
+                                                    SoundManager.PlaySound(BaseSound + 6);
+                                                }
+                                                break;
+                                            case Monster.WhiteFoxman:
+                                                missile = CreateProjectile(1160, Libraries.Magic, true, 3, 30, 7);
+
+                                                if (missile.Target != null)
+                                                {
+                                                    missile.Complete += (o, e) =>
+                                                    {
+                                                        if (missile.Target.CurrentAction == MirAction.Dead) return;
+                                                        missile.Target.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.WhiteFoxman], 352, 10, 600, missile.Target));
+                                                        SoundManager.PlaySound(BaseSound + 6);
+                                                    };
+                                                }
+                                                break;
+                                            case Monster.TrapRock:
+                                                ob = MapControl.GetObject(TargetID);
+                                                if (ob != null)
+                                                {
+                                                    ob.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.TrapRock], 26, 10, 600, ob));
+                                                    SoundManager.PlaySound(BaseSound + 6);
+                                                }
+                                                break;
+                                            case Monster.HedgeKekTal:
+                                                if (MapControl.GetObject(TargetID) != null)
+                                                    CreateProjectile(38, Libraries.Monsters[(ushort)Monster.HedgeKekTal], false, 4, 30, 6);
+                                                break;
+                                            case Monster.BigHedgeKekTal:
+                                                if (MapControl.GetObject(TargetID) != null)
+                                                    CreateProjectile(38, Libraries.Monsters[(ushort)Monster.BigHedgeKekTal], false, 4, 30, 6);
+                                                break;
+                                            case Monster.EvilMir:
+                                                missile = CreateProjectile(60, Libraries.Dragon, true, 10, 10, 0);
+
+                                                if (missile.Direction > 12)
+                                                    missile.Direction = 12;
+                                                if (missile.Direction < 7)
+                                                    missile.Direction = 7;
+
+                                                if (missile.Target != null)
+                                                {
+                                                    missile.Complete += (o, e) =>
+                                                    {
+                                                        if (missile.Target.CurrentAction == MirAction.Dead) return;
+                                                        missile.Target.Effects.Add(new Effect(Libraries.Dragon, 200, 20, 600, missile.Target));
+                                                    };
+                                                }
+                                                break;
+                                            case Monster.ArcherGuard:
+                                                if (MapControl.GetObject(TargetID) != null)
+                                                    CreateProjectile(38, Libraries.Monsters[(ushort)Monster.ArcherGuard], false, 3, 30, 6);
+                                                break;
+                                            case Monster.SpittingToad:
+                                                if (MapControl.GetObject(TargetID) != null)
+                                                    CreateProjectile(280, Libraries.Monsters[(ushort)Monster.SpittingToad], true, 6, 30, 0);
+                                                break;
+                                            case Monster.ArcherGuard2:
+                                                if (MapControl.GetObject(TargetID) != null)
+                                                    CreateProjectile(38, Libraries.Monsters[(ushort)Monster.ArcherGuard], false, 3, 30, 6);
+                                                break;
+                                            case Monster.FinialTurtle:
+                                                missile = CreateProjectile(272, Libraries.Monsters[(ushort)Monster.FinialTurtle], true, 3, 30, 0, true);
+
+                                                if (missile.Target != null)
+                                                {
+                                                    missile.Complete += (o, e) =>
+                                                    {
+                                                        if (missile.Target.CurrentAction == MirAction.Dead) return;
+                                                        missile.Target.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.FinialTurtle], 320, 10, 500, missile.Target) { Blend = true });
+                                                        SoundManager.PlaySound(20000 + (ushort)Spell.FrostCrunch * 10 + 2);
+                                                    };
+                                                }
+                                                break;
+                                            case Monster.HellBolt:
+                                                ob = MapControl.GetObject(TargetID);
+                                                if (ob != null)
+                                                {
+                                                    ob.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.HellBolt], 315, 10, 600, ob));
+                                                    SoundManager.PlaySound(BaseSound + 6);
+                                                }
+                                                break;
+                                            case Monster.WitchDoctor:
+                                                if (MapControl.GetObject(TargetID) != null)
+                                                {
+                                                    missile = CreateProjectile(313, Libraries.Monsters[(ushort)Monster.WitchDoctor], true, 5, 30, -5, false);
+
+                                                    if (missile.Target != null)
+                                                    {
+                                                        missile.Complete += (o, e) =>
+                                                        {
+                                                            if (missile.Target.CurrentAction == MirAction.Dead) return;
+                                                            missile.Target.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.WitchDoctor], 318, 10, 600, missile.Target));
+                                                            SoundManager.PlaySound(BaseSound + 6);
+                                                        };
+                                                    }
+                                                }
+                                                break;
+                                            case Monster.WingedTigerLord:
+                                                ob = MapControl.GetObject(TargetID);
+                                                if (ob != null)
+                                                {
+                                                    ob.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.WingedTigerLord], 640, 10, 800, ob, CMain.Time + 400, false));
+                                                }
+                                                break;
+                                            case Monster.TrollBomber:
+                                                missile = CreateProjectile(208, Libraries.Monsters[(ushort)Monster.TrollBomber], false, 4, 40, -4, false);
+
+                                                if (missile.Target != null)
+                                                {
+                                                    missile.Complete += (o, e) =>
+                                                    {
+                                                        missile.Target.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.TrollBomber], 212, 6, 600, missile.Target) { Blend = true });
+                                                    };
+                                                }
+                                                break;
+                                            case Monster.TrollStoner:
+                                                missile = CreateProjectile(208, Libraries.Monsters[(ushort)Monster.TrollStoner], false, 4, 40, -4, false);
+                                                break;
+                                            case Monster.FlameMage:
+                                                missile = CreateProjectile(544, Libraries.Monsters[(ushort)Monster.FlameMage], true, 3, 20, 0);
+
+                                                if (missile.Target != null)
+                                                {
+                                                    missile.Complete += (o, e) =>
+                                                    {
+                                                        missile.Target.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.FlameMage], 592, 10, 1000, missile.Target));
+                                                    };
+                                                }
+                                                break;
+                                            case Monster.FlameScythe:
+                                                ob = MapControl.GetObject(TargetID);
+                                                if (ob != null)
+                                                {
+                                                    ob.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.FlameScythe], 586, 9, 900, ob));
+                                                }
+                                                break;
+                                            case Monster.FlameAssassin:
+                                                missile = CreateProjectile(592, Libraries.Monsters[(ushort)Monster.FlameAssassin], true, 3, 20, 0);
+
+                                                if (missile.Target != null)
+                                                {
+                                                    missile.Complete += (o, e) =>
+                                                    {
+                                                        missile.Target.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.FlameAssassin], 640, 6, 600, missile.Target));
+                                                    };
+                                                }
+                                                break;
+                                            case Monster.FlameQueen:
+                                                Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.FlameQueen], 729, 10, Frame.Count * Frame.Interval, this));
+                                                break;
+                                        }
+                                        break;
+                                    }
+                                case 5:
+                                    
+                                    break;
+                            }
+                            NextMotion += FrameInterval;
+                        }
+                    }
+                    break;
+                case MirAction.AttackRange2:
+                    if (CMain.Time >= NextMotion)
+                    {
+                        GameScene.Scene.MapControl.TextureValid = false;
+
+                        if (SkipFrames) UpdateFrame();
+
+                        if (UpdateFrame() >= Frame.Count)
+                        {
+                            FrameIndex = Frame.Count - 1;
+                            SetAction();
+                        }
+                        else
+                        {
+                            switch (FrameIndex)
+                            {
+                                case 4:
+                                    {
+                                        MapObject ob = null;
+                                        Missile missile;
+                                        switch (BaseImage)
+                                        {
+
+                                            case Monster.RedFoxman:
+                                                ob = MapControl.GetObject(TargetID);
+                                                if (ob != null)
+                                                {
+                                                    ob.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.RedFoxman], 233, 10, 400, ob));
+                                                    SoundManager.PlaySound(BaseSound + 7);
+                                                }
+                                                break;
+                                            case Monster.WhiteFoxman:
+                                                missile = CreateProjectile(1160, Libraries.Magic, true, 3, 30, 7);
+
+                                                if (missile.Target != null)
+                                                {
+                                                    missile.Complete += (o, e) =>
+                                                    {
+                                                        if (missile.Target.CurrentAction == MirAction.Dead) return;
+                                                        missile.Target.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.WhiteFoxman], 362, 15, 1800, missile.Target));
+                                                        SoundManager.PlaySound(BaseSound + 7);
+                                                    };
+                                                }
+                                                break;
+                                            case Monster.TrollKing:
+                                                missile = CreateProjectile(294, Libraries.Monsters[(ushort)Monster.TrollKing], false, 4, 40, -4, false);
+
+                                                if (missile.Target != null)
+                                                {
+                                                    missile.Complete += (o, e) =>
+                                                    {
+                                                        missile.Target.Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.TrollKing], 298, 6, 600, missile.Target) { Blend = true });
+                                                    };
+                                                }
+                                                break;
+                                        }
+                                        break;
+                                    }
+                            }
+                            NextMotion += FrameInterval;
+                        }
+                    }
+                    break;
+                case MirAction.AttackRange3:
+                    if (CMain.Time >= NextMotion)
+                    {
+                        GameScene.Scene.MapControl.TextureValid = false;
+
+                        if (SkipFrames) UpdateFrame();
+
+                        if (UpdateFrame() >= Frame.Count)
+                        {
+                            FrameIndex = Frame.Count - 1;
+                            SetAction();
+                        }
+                        else
+                        {
+                            NextMotion += FrameInterval;
+                        }
+                    }
+                    break;
+                case MirAction.Struck:
+                    if (CMain.Time >= NextMotion)
+                    {
+                        GameScene.Scene.MapControl.TextureValid = false;
+
+                        if (SkipFrames) UpdateFrame();
+
+                        if (UpdateFrame() >= Frame.Count)
+                        {
+                            FrameIndex = Frame.Count - 1;
+                            SetAction();
+                        }
+                        else
+                        {
+                            NextMotion += FrameInterval;
+                        }
+                    }
+                    break;
+
+                case MirAction.Die:
+                    if (CMain.Time >= NextMotion)
+                    {
+                        GameScene.Scene.MapControl.TextureValid = false;
+
+                        if (SkipFrames) UpdateFrame();
+
+                        if (UpdateFrame() >= Frame.Count)
+                        {
+                            FrameIndex = Frame.Count - 1;
+                            ActionFeed.Clear();
+                            ActionFeed.Add(new QueuedAction { Action = MirAction.Dead, Direction = Direction, Location = CurrentLocation });
+                            SetAction();
+                        }
+                        else
+                        {
+                            switch (FrameIndex)
+                            {
+                                case 1:
+                                    switch (BaseImage)
+                                    {
+                                        case Monster.PoisonHugger:
+                                            Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.PoisonHugger], 224, 5, Frame.Count * FrameInterval, this));
+                                            break;
+                                        case Monster.Hugger:
+                                            Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.Hugger], 256, 8, Frame.Count * FrameInterval, this));
+                                            break;
+                                        case Monster.MutatedHugger:
+                                            Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.MutatedHugger], 128, 7, Frame.Count * FrameInterval, this));
+                                            break;
+                                        case Monster.CyanoGhast:
+                                            Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.CyanoGhast], 681, 7, Frame.Count * FrameInterval, this));
+                                            break;
+                                    }
+                                    break;
+                                case 3:
+                                    PlayDeadSound();
+                                    switch (BaseImage)
+                                    {
+                                        case Monster.BoneSpearman:
+                                        case Monster.BoneBlademan:
+                                        case Monster.BoneArcher:
+                                            Effects.Add(new Effect(Libraries.Monsters[(ushort)Monster.BoneSpearman], 224, 8, Frame.Count * FrameInterval, this));
+                                            break;
+                                    }
+                                    break;
+                            }
+
+                            NextMotion += FrameInterval;
+                        }
+                    }
+                    break;
+                case MirAction.Revive:
+                    if (CMain.Time >= NextMotion)
+                    {
+                        GameScene.Scene.MapControl.TextureValid = false;
+
+                        if (SkipFrames) UpdateFrame();
+
+                        if (UpdateFrame() >= Frame.Count)
+                        {
+                            FrameIndex = Frame.Count - 1;
+                            ActionFeed.Clear();
+                            ActionFeed.Add(new QueuedAction { Action = MirAction.Standing, Direction = Direction, Location = CurrentLocation });
+                            SetAction();
+                        }
+                        else
+                        {
+                            if (FrameIndex == 3)
+                                PlayReviveSound();
+                            NextMotion += FrameInterval;
+                        }
+                    }
+                    break;
+                case MirAction.Dead:
+                    break;
+
             }
 
-            if (Master != null && Master != attacker && Master.Race == ObjectType.Player && Envir.Time > Master.BrownTime && Master.PKPoints < 200 && !((PlayerObject)Master).AtWar(attacker))
-            {
-                attacker.BrownTime = Envir.Time + Settings.Minute;
-            }
-
-            for (int i = 0; i < attacker.Pets.Count; i++)
-            {
-                MonsterObject ob = attacker.Pets[i];
-
-                if (IsAttackTarget(ob) && (ob.Target == null)) ob.Target = this;
-            }
-
-            BroadcastDamageIndicator(DamageType.Hit, armour - damage);
-
-            ChangeHP(armour - damage);
-            return damage - armour;
+            if ((CurrentAction == MirAction.Standing || CurrentAction == MirAction.SitDown) && NextAction != null)
+                SetAction();
+            else if (CurrentAction == MirAction.Dead && NextAction != null && (NextAction.Action == MirAction.Skeleton || NextAction.Action == MirAction.Revive))
+                SetAction();
         }
-        public override int Attacked(MonsterObject attacker, int damage, DefenceType type = DefenceType.ACAgility)
+        public int UpdateFrame()
         {
-            if (Target == null && attacker.IsAttackTarget(this))
-                Target = attacker;
+            if (Frame == null) return 0;
 
-            int armour = 0;
+            if (Frame.Reverse) return Math.Abs(--FrameIndex);
 
-            switch (type)
+            return ++FrameIndex;
+        }
+
+
+        private Missile CreateProjectile(int baseIndex, MLibrary library, bool blend, int count, int interval, int skip, bool direction16 = true)
+        {
+            MapObject ob = MapControl.GetObject(TargetID);
+
+            if (ob != null) TargetPoint = ob.CurrentLocation;
+
+            int duration = Functions.MaxDistance(CurrentLocation, TargetPoint) * 50;
+
+
+            Missile missile = new Missile(library, baseIndex, duration / interval, duration, this, TargetPoint, direction16)
             {
-                case DefenceType.ACAgility:
-                    if (Envir.Random.Next(Agility + 1) > attacker.Accuracy)
-                    {
-                        BroadcastDamageIndicator(DamageType.Miss);
-                        return 0;
-                    }
-                    armour = GetDefencePower(MinAC, MaxAC);
-                    break;
-                case DefenceType.AC:
-                    armour = GetDefencePower(MinAC, MaxAC);
-                    break;
-                case DefenceType.MACAgility:
-                    if (Envir.Random.Next(Agility + 1) > attacker.Accuracy)
-                    {
-                        BroadcastDamageIndicator(DamageType.Miss);
-                        return 0;
-                    }
-                    armour = GetDefencePower(MinMAC, MaxMAC);
-                    break;
-                case DefenceType.MAC:
-                    armour = GetDefencePower(MinAC, MaxAC);
-                    break;
-                case DefenceType.Agility:
-                    if (Envir.Random.Next(Agility + 1) > attacker.Accuracy)
-                    {
-                        BroadcastDamageIndicator(DamageType.Miss);
-                        return 0;
-                    }
-                    break;
+                Target = ob,
+                Interval = interval,
+                FrameCount = count,
+                Blend = blend,
+                Skip = skip
+            };
+
+            Effects.Add(missile);
+
+            return missile;
+        }
+
+        private void PlaySummonSound()
+        {
+            switch (BaseImage)
+            {
+                case Monster.HellKnight1:
+                case Monster.HellKnight2:
+                case Monster.HellKnight3:
+                case Monster.HellKnight4:
+                    SoundManager.PlaySound(BaseSound + 0);
+                    return;
+                case Monster.BoneFamiliar:
+                case Monster.Shinsu:
+                case Monster.HolyDeva:
+                    SoundManager.PlaySound(BaseSound + 5);
+                    return;
             }
-
-            armour = (int)Math.Max(int.MinValue, (Math.Min(int.MaxValue, (decimal)(armour * ArmourRate))));
-            damage = (int)Math.Max(int.MinValue, (Math.Min(int.MaxValue, (decimal)(damage * DamageRate))));
-
-            if (armour >= damage)
+        }
+        private void PlayWalkSound(bool left = true)
+        {
+            if (left)
             {
-                BroadcastDamageIndicator(DamageType.Miss);
-                return 0;
-            }
-
-            if (Target != this && attacker.IsAttackTarget(this))
-                Target = attacker;
-
-            if (BindingShotCenter) ReleaseBindingShot();
-            ShockTime = 0;
-
-            for (int i = PoisonList.Count - 1; i >= 0; i--)
-            {
-                if (PoisonList[i].PType != PoisonType.LRParalysis) continue;
-
-                PoisonList.RemoveAt(i);
-                OperateTime = 0;
-            }
-
-            if (attacker.Info.AI == 6 || attacker.Info.AI == 58)
-                EXPOwner = null;
-
-            else if (attacker.Master != null)
-            {
-                if (!Functions.InRange(attacker.CurrentLocation, attacker.Master.CurrentLocation, Globals.DataRange))
-                    EXPOwner = null;
-                else
+                switch (BaseImage)
                 {
-
-                    if (EXPOwner == null || EXPOwner.Dead)
-                        EXPOwner = attacker.Master;
-
-                    if (EXPOwner == attacker.Master)
-                        EXPOwnerTime = Envir.Time + EXPOwnerDelay;
+                    case Monster.WingedTigerLord:
+                    case Monster.PoisonHugger:
+                        SoundManager.PlaySound(BaseSound + 8);
+                        return;
                 }
-
+            }
+            else
+            {
+                switch (BaseImage)
+                {
+                    case Monster.WingedTigerLord:
+                        SoundManager.PlaySound(BaseSound + 8);
+                        return;
+                    case Monster.PoisonHugger:
+                        SoundManager.PlaySound(BaseSound + 9);
+                        return;
+                }
+            }
+        }
+        public void PlayAppearSound()
+        {
+            switch (BaseImage)
+            {
+                case Monster.CannibalPlant:
+                case Monster.EvilCentipede:
+                    return;
+                case Monster.ZumaArcher:
+                case Monster.ZumaStatue:
+                case Monster.ZumaGuardian:
+                case Monster.RedThunderZuma:
+                case Monster.ZumaTaurus:
+                    if (Stoned) return;
+                    break;
             }
 
-            Broadcast(new S.ObjectStruck { ObjectID = ObjectID, AttackerID = attacker.ObjectID, Direction = Direction, Location = CurrentLocation });
-
-            BroadcastDamageIndicator(DamageType.Hit, armour - damage);
-
-            ChangeHP(armour - damage);
-            return damage - armour;
+            SoundManager.PlaySound(BaseSound);
+        }
+        public void PlayPopupSound()
+        {
+            switch (BaseImage)
+            {
+                case Monster.ZumaTaurus:
+                case Monster.DigOutZombie:
+                    SoundManager.PlaySound(BaseSound + 5);
+                    return;
+                case Monster.Shinsu:
+                    SoundManager.PlaySound(BaseSound + 6);
+                    return;
+            }
+            SoundManager.PlaySound(BaseSound);
+        }
+        public void PlayFlinchSound()
+        {
+            SoundManager.PlaySound(BaseSound + 2);
+        }
+        public void PlayStruckSound()
+        {
+            switch (StruckWeapon)
+            {
+                case 0:
+                case 23:
+                case 28:
+                case 40:
+                    SoundManager.PlaySound(SoundList.StruckWooden);
+                    break;
+                case 1:
+                case 12:
+                    SoundManager.PlaySound(SoundList.StruckShort);
+                    break;
+                case 2:
+                case 8:
+                case 11:
+                case 15:
+                case 18:
+                case 20:
+                case 25:
+                case 31:
+                case 33:
+                case 34:
+                case 37:
+                case 41:
+                    SoundManager.PlaySound(SoundList.StruckSword);
+                    break;
+                case 3:
+                case 5:
+                case 7:
+                case 9:
+                case 13:
+                case 19:
+                case 24:
+                case 26:
+                case 29:
+                case 32:
+                case 35:
+                    SoundManager.PlaySound(SoundList.StruckSword2);
+                    break;
+                case 4:
+                case 14:
+                case 16:
+                case 38:
+                    SoundManager.PlaySound(SoundList.StruckAxe);
+                    break;
+                case 6:
+                case 10:
+                case 17:
+                case 22:
+                case 27:
+                case 30:
+                case 36:
+                case 39:
+                    SoundManager.PlaySound(SoundList.StruckShort);
+                    break;
+                case 21:
+                    SoundManager.PlaySound(SoundList.StruckClub);
+                    break;
+            }
+        }
+        public void PlayAttackSound()
+        {
+            SoundManager.PlaySound(BaseSound + 1);
         }
 
-        public override int Struck(int damage, DefenceType type = DefenceType.ACAgility)
+        public void PlaySecondAttackSound()
         {
-            int armour = 0;
-
-            switch (type)
-            {
-                case DefenceType.ACAgility:
-                    armour = GetDefencePower(MinAC, MaxAC);
-                    break;
-                case DefenceType.AC:
-                    armour = GetDefencePower(MinAC, MaxAC);
-                    break;
-                case DefenceType.MACAgility:
-                    armour = GetDefencePower(MinMAC, MaxMAC);
-                    break;
-                case DefenceType.MAC:
-                    armour = GetDefencePower(MinAC, MaxAC);
-                    break;
-                case DefenceType.Agility:
-                    break;
-            }
-
-            armour = (int)Math.Max(int.MinValue, (Math.Min(int.MaxValue, (decimal)(armour * ArmourRate))));
-            damage = (int)Math.Max(int.MinValue, (Math.Min(int.MaxValue, (decimal)(damage * DamageRate))));
-
-            if (armour >= damage) return 0;
-            Broadcast(new S.ObjectStruck { ObjectID = ObjectID, AttackerID = 0, Direction = Direction, Location = CurrentLocation });
-
-            ChangeHP(armour - damage);
-            return damage - armour;
+            SoundManager.PlaySound(BaseSound + 6);
+        }
+        public void PlayThirdAttackSound()
+        {
+            SoundManager.PlaySound(BaseSound + 7);
         }
 
-        public override void ApplyPoison(Poison p, MapObject Caster = null, bool NoResist = false, bool ignoreDefence = true)
+        public void PlayFourthAttackSound()
         {
-            if (p.Owner != null && p.Owner.IsAttackTarget(this))
-                Target = p.Owner;
-
-            if (Master != null && p.Owner != null && p.Owner.Race == ObjectType.Player && p.Owner != Master)
+            SoundManager.PlaySound(BaseSound + 8);
+        }
+        public void PlaySwingSound()
+        {
+            SoundManager.PlaySound(BaseSound + 4);
+        }
+        public void PlayDieSound()
+        {
+            SoundManager.PlaySound(BaseSound + 3);
+        }
+        public void PlayDeadSound()
+        {
+            switch (BaseImage)
             {
-                if (Envir.Time > Master.BrownTime && Master.PKPoints < 200)
-                    p.Owner.BrownTime = Envir.Time + Settings.Minute;
+                case Monster.CaveBat:
+                case Monster.HellKnight1:
+                case Monster.HellKnight2:
+                case Monster.HellKnight3:
+                case Monster.HellKnight4:
+                case Monster.CyanoGhast:
+                    SoundManager.PlaySound(BaseSound + 5);
+                    return;
+            }
+        }
+        public void PlayReviveSound()
+        {
+            switch (BaseImage)
+            {
+                case Monster.ClZombie:
+                case Monster.NdZombie:
+                case Monster.CrawlerZombie:
+                    SoundManager.PlaySound(SoundList.ZombieRevive);
+                    return;
+            }
+        }
+        public void PlayRangeSound()
+        {
+            switch (BaseImage)
+            {
+                case Monster.TurtleKing:
+                    return;
+                case Monster.RedThunderZuma:
+                case Monster.KingScorpion:
+                case Monster.DarkDevil:
+                case Monster.Khazard:
+                case Monster.BoneLord:
+                case Monster.LeftGuard:
+                case Monster.RightGuard:
+                case Monster.FrostTiger:
+                case Monster.GreatFoxSpirit:
+                case Monster.BoneSpearman:
+                case Monster.MinotaurKing:
+                case Monster.WingedTigerLord:
+                case Monster.ManectricClaw:
+                case Monster.ManectricKing:
+                case Monster.HellBolt:
+                case Monster.WitchDoctor:
+                case Monster.FlameSpear:
+                case Monster.FlameMage:
+                case Monster.FlameScythe:
+                case Monster.FlameAssassin:
+                case Monster.FlameQueen:
+                    SoundManager.PlaySound(BaseSound + 5);
+                    return;
+                default:
+                    PlayAttackSound();
+                    return;
+            }
+        }
+        public void PlaySecondRangeSound()
+        {
+            switch(BaseImage)
+            {
+                case Monster.TurtleKing:
+                    return;
+                default:
+                    PlaySecondAttackSound();
+                    return;
+            }
+        }
+
+        public void PlayThirdRangeSound()
+        {
+            switch (BaseImage)
+            {
+                default:
+                    PlayThirdAttackSound();
+                    return;
+            }
+        }
+
+        public void PlayPickupSound()
+        {
+            SoundManager.PlaySound(SoundList.PetPickup);
+        }
+        public void PlayPetSound()
+        {
+            int petSound = (ushort)BaseImage - 10000 + 10500;
+
+            switch (BaseImage)
+            {
+                case Monster.Chick:
+                case Monster.BabyPig:
+                case Monster.Kitten:
+                case Monster.BabySkeleton:
+                case Monster.Baekdon:
+                case Monster.Wimaen:
+                case Monster.BlackKitten:
+                case Monster.BabyDragon:
+                case Monster.OlympicFlame:
+                case Monster.BabySnowMan:
+                case Monster.Frog:
+                case Monster.BabyMonkey:
+                    SoundManager.PlaySound(petSound);
+                    break;
+            }
+        }
+        public override void Draw()
+        {
+            DrawBehindEffects(Settings.Effect);
+
+            float oldOpacity = DXManager.Opacity;
+            if (Hidden && !DXManager.Blending) DXManager.SetOpacity(0.5F);
+
+            if (BodyLibrary == null || Frame == null) return;
+
+            if (!DXManager.Blending && Frame.Blend)
+                BodyLibrary.DrawBlend(DrawFrame, DrawLocation, DrawColour, true);
+            else
+                BodyLibrary.Draw(DrawFrame, DrawLocation, DrawColour, true);
+
+            DXManager.SetOpacity(oldOpacity);
+        }
+
+
+        public override bool MouseOver(Point p)
+        {
+            return MapControl.MapLocation == CurrentLocation || BodyLibrary != null && BodyLibrary.VisiblePixel(DrawFrame, p.Subtract(FinalDrawLocation), false);
+        }
+
+        public override void DrawBehindEffects(bool effectsEnabled)
+        {
+            for (int i = 0; i < Effects.Count; i++)
+            {
+                if (!Effects[i].DrawBehind) continue;
+                Effects[i].Draw();
+            }
+        }
+
+        public override void DrawEffects(bool effectsEnabled)
+        {
+            if (!effectsEnabled) return;
+
+            for (int i = 0; i < Effects.Count; i++)
+            {
+                if (Effects[i].DrawBehind) continue;
+                Effects[i].Draw();
             }
 
-            if (!ignoreDefence && (p.PType == PoisonType.Green))
+            switch (BaseImage)
             {
-                int armour = GetDefencePower(MinMAC, MaxMAC);
+                case Monster.Scarecrow:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Die:
+                            Libraries.Monsters[(ushort)Monster.Scarecrow].DrawBlend(224 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.CaveMaggot:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack1:
+                            if (FrameIndex >= 1)
+                                Libraries.Monsters[(ushort)Monster.CaveMaggot].DrawBlend(175 + FrameIndex + (int)Direction * 5, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.Skeleton:
+                case Monster.BoneFighter:
+                case Monster.AxeSkeleton:
+                case Monster.BoneWarrior:
+                case Monster.BoneElite:
+                case Monster.BoneWhoo:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Die:
+                            Libraries.Monsters[(ushort)Monster.Skeleton].DrawBlend(224 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.WoomaTaurus:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.WoomaTaurus].DrawBlend(224 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.Dung:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack1:
+                            if (FrameIndex >= 1)
+                                Libraries.Monsters[(ushort)Monster.Dung].DrawBlend(223 + FrameIndex + (int)Direction * 5, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.WedgeMoth:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.WedgeMoth].DrawBlend(224 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.RedThunderZuma:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)Monster.RedThunderZuma].DrawBlend(320 + FrameIndex + (int)Direction * 4, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Walking:
+                        case MirAction.Pushed:
+                            Libraries.Monsters[(ushort)Monster.RedThunderZuma].DrawBlend(352 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.RedThunderZuma].DrawBlend(400 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)Monster.RedThunderZuma].DrawBlend(448 + FrameIndex + (int)Direction * 2, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.AttackRange1:
+                            Libraries.Monsters[(ushort)Monster.RedThunderZuma].DrawBlend(464 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.KingHog:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.KingHog].DrawBlend(224 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.DarkDevil:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.DarkDevil].DrawBlend(342 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.BoneLord:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)Monster.BoneLord].DrawBlend(400 + FrameIndex + (int)Direction * 4, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Walking:
+                        case MirAction.Pushed:
+                            Libraries.Monsters[(ushort)Monster.BoneLord].DrawBlend(432 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.BoneLord].DrawBlend(480 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack2:
+                            Libraries.Monsters[(ushort)Monster.BoneLord].DrawBlend(528 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.AttackRange1:
+                            Libraries.Monsters[(ushort)Monster.BoneLord].DrawBlend(576 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)Monster.BoneLord].DrawBlend(624 + FrameIndex + (int)Direction * 2, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Die:
+                            Libraries.Monsters[(ushort)Monster.BoneLord].DrawBlend(640 + FrameIndex + (int)Direction * 20, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.HolyDeva:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)Monster.HolyDeva].Draw(226 + FrameIndex + (int)Direction * 4, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Walking:
+                        case MirAction.Pushed:
+                            Libraries.Monsters[(ushort)Monster.HolyDeva].Draw(258 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.AttackRange1:
+                            Libraries.Monsters[(ushort)Monster.HolyDeva].Draw(306 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)Monster.HolyDeva].Draw(354 + FrameIndex + (int)Direction * 2, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Die:
+                            if (FrameIndex <= 6) Libraries.Monsters[(ushort)Monster.HolyDeva].Draw(370 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Appear:
+                            if (FrameIndex >= 5) Libraries.Monsters[(ushort)Monster.HolyDeva].Draw(418 + FrameIndex - 5, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.YinDevilNode:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)Monster.YinDevilNode].DrawBlend(22 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.YangDevilNode:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)Monster.YangDevilNode].DrawBlend(22 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.OmaKing:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack1:
+                            if (FrameIndex >= 3) Libraries.Monsters[(ushort)Monster.OmaKing].DrawBlend((624 + FrameIndex + (int)Direction * 4) - 3, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack2:
+                            Libraries.Monsters[(ushort)Monster.OmaKing].DrawBlend(656 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Die:
+                            Libraries.Monsters[(ushort)Monster.OmaKing].DrawBlend(304 + FrameIndex + (int)Direction * 20, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.BlackFoxman:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack2:
+                            if (FrameIndex >= 3) Libraries.Monsters[(ushort)Monster.BlackFoxman].DrawBlend((234 + FrameIndex + (int)Direction * 4) - 3, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
 
-                if (p.Value < armour)
-                    p.PType = PoisonType.None;
-                else
-                    p.Value -= armour;
+                case Monster.ManectricKing:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)Monster.ManectricKing].DrawBlend(360 + FrameIndex + (int)Direction * 4, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Walking:
+                            Libraries.Monsters[(ushort)Monster.ManectricKing].DrawBlend(392 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.ManectricKing].DrawBlend(440 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack2:
+                            Libraries.Monsters[(ushort)Monster.ManectricKing].DrawBlend(576 + FrameIndex + (int)Direction * 8, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)Monster.ManectricKing].DrawBlend(488 + FrameIndex + (int)Direction * 2, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;            
+                case Monster.ManectricStaff:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack2:
+                            Libraries.Monsters[(ushort)Monster.ManectricStaff].DrawBlend(296 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.ManectricBlest:
+                    switch(CurrentAction)
+                    {
+                        case MirAction.Attack2:
+                            if (FrameIndex >= 4) Libraries.Monsters[(ushort)Monster.ManectricBlest].DrawBlend((328 + FrameIndex + (int)Direction * 4) - 4, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack3:
+                            if (FrameIndex >= 2) Libraries.Monsters[(ushort)Monster.ManectricBlest].DrawBlend((360 + FrameIndex + (int)Direction * 5) - 2, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.Bear:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.AttackRange1:
+                            Libraries.Monsters[(ushort)Monster.Bear].DrawBlend(312 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.WoodBox:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Die:
+                            Libraries.Monsters[(ushort)Monster.WoodBox].DrawBlend(103 + FrameIndex + (int)Direction * 20, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.KingGuard:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)Monster.KingGuard].DrawBlend(392 + FrameIndex + (int)Direction * 4, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Walking:
+                            Libraries.Monsters[(ushort)Monster.KingGuard].DrawBlend(424 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.KingGuard].DrawBlend(472 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack2:
+                            Libraries.Monsters[(ushort)Monster.KingGuard].DrawBlend(616 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Dead:
+                            Libraries.Monsters[(ushort)Monster.KingGuard].DrawBlend(545 + FrameIndex + (int)Direction * 10, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Pushed:
+                            Libraries.Monsters[(ushort)Monster.KingGuard].DrawBlend(352 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)Monster.KingGuard].DrawBlend(520 + FrameIndex + (int)Direction * 2, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Die:
+                            Libraries.Monsters[(ushort)Monster.KingGuard].DrawBlend(534 + FrameIndex + (int)Direction * 10, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.AttackRange1:
+                            Libraries.Monsters[(ushort)Monster.KingGuard].DrawBlend(664 + FrameIndex + (int)Direction * 8, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.AttackRange2:
+                            Libraries.Monsters[(ushort)Monster.KingGuard].DrawBlend(728 + FrameIndex + (int)Direction * 7, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.SeedingsGeneral:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)Monster.SeedingsGeneral].DrawBlend(536 + FrameIndex + (int)Direction * 4, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Walking:
+                            Libraries.Monsters[(ushort)Monster.SeedingsGeneral].DrawBlend(568 + FrameIndex + (int)Direction * 4, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.SeedingsGeneral].DrawBlend(704 + FrameIndex + (int)Direction * 9, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack2:
+                            Libraries.Monsters[(ushort)Monster.SeedingsGeneral].DrawBlend(776 + FrameIndex + (int)Direction * 9, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Dead:
+                            Libraries.Monsters[(ushort)Monster.SeedingsGeneral].DrawBlend(1015 + FrameIndex + (int)Direction * 1, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)Monster.SeedingsGeneral].DrawBlend(984 + FrameIndex + (int)Direction * 3, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Die:
+                            Libraries.Monsters[(ushort)Monster.SeedingsGeneral].DrawBlend(1008 + FrameIndex + (int)Direction * 8, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.AttackRange1:
+                            Libraries.Monsters[(ushort)Monster.SeedingsGeneral].DrawBlend(848 + FrameIndex + (int)Direction * 8, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.AttackRange2:
+                            Libraries.Monsters[(ushort)Monster.SeedingsGeneral].DrawBlend(912 + FrameIndex + (int)Direction * 9, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.GasToad:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack2:
+                            if (FrameIndex >= 3) Libraries.Monsters[(ushort)Monster.GasToad].DrawBlend((360 + FrameIndex - 2 + (int)Direction * 4) - 3, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+
+                case Monster.HellSlasher:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack2:
+                            if (FrameIndex >= 4 && FrameIndex < 8) Libraries.Monsters[(ushort)Monster.HellSlasher].DrawBlend((304 + FrameIndex + (int)Direction * 4) - 4, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+
+                case Monster.HellPirate:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack2:
+                            if (FrameIndex >= 3) Libraries.Monsters[(ushort)Monster.HellPirate].DrawBlend((280 + FrameIndex + (int)Direction * 4) - 3, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+
+                case Monster.HellCannibal:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.HellCannibal].DrawBlend(304 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+
+                case Monster.HellKeeper:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack2:
+                            Libraries.Monsters[(ushort)Monster.HellKeeper].DrawBlend(40 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.Manticore:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack2:
+                            if (FrameIndex >= 3) Libraries.Monsters[(ushort)Monster.Manticore].DrawBlend((536 + FrameIndex + (int)Direction * 4) - 3, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.GuardianRock:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.AttackRange1:
+                            Libraries.Monsters[(ushort)Monster.GuardianRock].DrawBlend(8 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.ThunderElement:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)Monster.ThunderElement].DrawBlend(44 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Walking:
+                        case MirAction.Pushed:
+                            Libraries.Monsters[(ushort)Monster.ThunderElement].DrawBlend(54 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.ThunderElement].DrawBlend(64 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)Monster.ThunderElement].DrawBlend(74 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Die:
+                            Libraries.Monsters[(ushort)Monster.ThunderElement].DrawBlend(78 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.CloudElement:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)Monster.CloudElement].DrawBlend(44 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Walking:
+                        case MirAction.Pushed:
+                            Libraries.Monsters[(ushort)Monster.CloudElement].DrawBlend(54 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.CloudElement].DrawBlend(64 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)Monster.CloudElement].DrawBlend(74 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Die:
+                            Libraries.Monsters[(ushort)Monster.CloudElement].DrawBlend(78 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.GreatFoxSpirit:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)Monster.GreatFoxSpirit].DrawBlend(Frame.Start + 30 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack1:
+                        case MirAction.AttackRange1:
+                            Libraries.Monsters[(ushort)Monster.GreatFoxSpirit].DrawBlend(Frame.Start + 30 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)Monster.GreatFoxSpirit].DrawBlend(Frame.Start + 30 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Die:
+                            Libraries.Monsters[(ushort)Monster.GreatFoxSpirit].DrawBlend(318 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.TaoistGuard:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.TaoistGuard].DrawBlend(80 + ((int)Direction * 3) + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.CyanoGhast: //mob glow effect
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)Monster.CyanoGhast].DrawBlend(448 + FrameIndex + (int)Direction * 4, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Walking:
+                            Libraries.Monsters[(ushort)Monster.CyanoGhast].DrawBlend(480 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.CyanoGhast].DrawBlend(528 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)Monster.CyanoGhast].DrawBlend(576 + FrameIndex + (int)Direction * 2, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Die:
+                        case MirAction.Revive:
+                            Libraries.Monsters[(ushort)Monster.CyanoGhast].DrawBlend(592 + FrameIndex + (int)Direction * 10, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.MutatedManworm:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.MutatedManworm].DrawBlend(285 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack2:
+                            Libraries.Monsters[(ushort)Monster.MutatedManworm].DrawBlend(333 + FrameIndex + (int)Direction * 8, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.CrazyManworm:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack2:
+                            Libraries.Monsters[(ushort)Monster.CrazyManworm].DrawBlend(272 + FrameIndex + (int)Direction * 8, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+
+                case Monster.Behemoth:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Walking:
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)Monster.Behemoth].DrawBlend(464 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Standing:
+                        case MirAction.Revive:
+                            Libraries.Monsters[(ushort)Monster.Behemoth].DrawBlend(512 + FrameIndex + (int)Direction * 10, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack2:
+                        case MirAction.Attack3:
+                        case MirAction.AttackRange1:
+                        case MirAction.AttackRange2:
+                            Libraries.Monsters[(ushort)Monster.Behemoth].DrawBlend(592 + FrameIndex + (int)Direction * 7, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack1:
+                            if (FrameIndex >= 4) Libraries.Monsters[(ushort)Monster.Behemoth].DrawBlend((667 + FrameIndex + (int)Direction * 2) - 4, DrawLocation, Color.White, true);
+                            Libraries.Monsters[(ushort)Monster.Behemoth].DrawBlend(592 + FrameIndex + (int)Direction * 7, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Die:
+                            if (FrameIndex >= 1) Libraries.Monsters[(ushort)Monster.Behemoth].DrawBlend(658 + FrameIndex - 1, DrawLocation, Color.White, true);
+                            break;
+                    }
+
+                    if(CurrentAction != MirAction.Dead)
+                        Libraries.Monsters[(ushort)Monster.Behemoth].DrawBlend(648 + FrameIndex, DrawLocation, Color.White, true);
+                    break;
+
+                case Monster.DarkDevourer:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)Monster.DarkDevourer].DrawBlend(272 + FrameIndex + (int)Direction * 4, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Walking:
+                            Libraries.Monsters[(ushort)Monster.DarkDevourer].DrawBlend(304 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.DarkDevourer].DrawBlend(352 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.AttackRange1:
+                            Libraries.Monsters[(ushort)Monster.DarkDevourer].DrawBlend(540 + FrameIndex + (int)Direction * 8, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)Monster.DarkDevourer].DrawBlend(400 + FrameIndex + (int)Direction * 2, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Die:
+                        case MirAction.Revive:
+                            Libraries.Monsters[(ushort)Monster.DarkDevourer].DrawBlend(416 + FrameIndex + (int)Direction * 8, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+
+                case Monster.DreamDevourer:
+                    switch(CurrentAction)
+                    {
+                        case MirAction.AttackRange1:
+                            if (FrameIndex >= 3) Libraries.Monsters[(ushort)Monster.DreamDevourer].DrawBlend(320 + (FrameIndex + (int)Direction * 5) - 3, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+
+                case Monster.TurtleKing:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)Monster.TurtleKing].DrawBlend(456 + FrameIndex + (int)Direction * 4, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Walking:
+                            Libraries.Monsters[(ushort)Monster.TurtleKing].DrawBlend(488 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.TurtleKing].DrawBlend(536 + FrameIndex + (int)Direction * 10, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)Monster.TurtleKing].DrawBlend(616 + FrameIndex + (int)Direction * 2, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Die:
+                        case MirAction.Revive:
+                            Libraries.Monsters[(ushort)Monster.TurtleKing].DrawBlend(632 + FrameIndex + (int)Direction * 9, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack2:
+                            Libraries.Monsters[(ushort)Monster.TurtleKing].DrawBlend(704 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.AttackRange1:
+                            Libraries.Monsters[(ushort)Monster.TurtleKing].DrawBlend(752 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.AttackRange2:
+                            Libraries.Monsters[(ushort)Monster.TurtleKing].DrawBlend(800 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.AttackRange3:
+                            Libraries.Monsters[(ushort)Monster.TurtleKing].DrawBlend(848 + FrameIndex + (int)Direction * 8, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+
+                case Monster.WingedTigerLord:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack1:
+                            if (FrameIndex >= 2) Libraries.Monsters[(ushort)Monster.WingedTigerLord].DrawBlend(584 + (FrameIndex + (int)Direction * 6) - 2, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack2:
+                            if (FrameIndex >= 2) Libraries.Monsters[(ushort)Monster.WingedTigerLord].DrawBlend(560 + (FrameIndex + (int)Direction * 3) - 2, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.StoningStatue:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack2:
+                            Libraries.Monsters[(ushort)Monster.StoningStatue].DrawBlend(464 + FrameIndex + (int)Direction * 20, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.FlameSpear:
+                case Monster.FlameMage:
+                case Monster.FlameScythe:
+                case Monster.FlameAssassin:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)BaseImage].DrawBlend(272 + FrameIndex + (int)Direction * 4, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Walking:
+                            Libraries.Monsters[(ushort)BaseImage].DrawBlend(304 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)BaseImage].DrawBlend(352 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)BaseImage].DrawBlend(400 + FrameIndex + (int)Direction * 2, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Die:
+                            Libraries.Monsters[(ushort)BaseImage].DrawBlend(416 + FrameIndex + (int)Direction * 10, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.AttackRange1:
+                            Libraries.Monsters[(ushort)BaseImage].DrawBlend(496 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            if (BaseImage == Monster.FlameScythe && (int)Direction > 0)
+                            {
+                                Libraries.Monsters[(ushort)BaseImage].DrawBlend(544 + FrameIndex + (int)Direction * 6 - 6, DrawLocation, Color.White, true);
+                            }
+                            else if (BaseImage == Monster.FlameAssassin)
+                            {
+                                Libraries.Monsters[(ushort)BaseImage].DrawBlend(544 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            }
+                            break;
+                    }
+                    break;
+                case Monster.FlameQueen:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)Monster.FlameQueen].DrawBlend(360 + FrameIndex + (int)Direction * 4, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Walking:
+                            Libraries.Monsters[(ushort)Monster.FlameQueen].DrawBlend(392 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)Monster.FlameQueen].DrawBlend(440 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)Monster.FlameQueen].DrawBlend(488 + FrameIndex + (int)Direction * 2, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Die:
+                            Libraries.Monsters[(ushort)Monster.FlameQueen].DrawBlend(504 + FrameIndex + (int)Direction * 10, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.AttackRange1:
+                            Libraries.Monsters[(ushort)Monster.FlameQueen].DrawBlend(584 + FrameIndex + (int)Direction * 9, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.HellKnight1:
+                case Monster.HellKnight2:
+                case Monster.HellKnight3:
+                case Monster.HellKnight4:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Appear:
+                            Libraries.Monsters[(ushort)BaseImage].DrawBlend(224 + FrameIndex + (int)Direction * 4, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Standing:
+                            Libraries.Monsters[(ushort)BaseImage].DrawBlend(224 + FrameIndex + (int)Direction * 4, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Walking:
+                            Libraries.Monsters[(ushort)BaseImage].DrawBlend(256 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack1:
+                            Libraries.Monsters[(ushort)BaseImage].DrawBlend(304 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)BaseImage].DrawBlend(352 + FrameIndex + (int)Direction * 2, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Die:
+                            Libraries.Monsters[(ushort)BaseImage].DrawBlend(368 + FrameIndex + (int)Direction * 4, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Attack2:
+                            Libraries.Monsters[(ushort)BaseImage].DrawBlend(400 + FrameIndex + (int)Direction * 6, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.HellLord:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Standing:
+                        case MirAction.Attack1:
+                        case MirAction.Struck:
+                            Libraries.Monsters[(ushort)Monster.HellLord].Draw(15, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Die:
+                            Libraries.Monsters[(ushort)Monster.HellLord].Draw(16 + FrameIndex, DrawLocation, Color.White, true);
+                            break;
+                        case MirAction.Dead:
+                            Libraries.Monsters[(ushort)Monster.HellLord].Draw(20, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
+                case Monster.WaterGuard:
+                    switch (CurrentAction)
+                    {
+                        case MirAction.Attack2:
+                            if (FrameIndex >= 4) Libraries.Monsters[(ushort)Monster.WaterGuard].DrawBlend(264 + (FrameIndex + (int)Direction * 3) - 4, DrawLocation, Color.White, true);
+                            break;
+                    }
+                    break;
             }
 
-            if (p.PType == PoisonType.None) return;
 
-            for (int i = 0; i < PoisonList.Count; i++)
+        }
+
+        public override void DrawName()
+        {
+            if (!Name.Contains("_"))
             {
-                if (PoisonList[i].PType != p.PType) continue;
-                if ((PoisonList[i].PType == PoisonType.Green) && (PoisonList[i].Value > p.Value)) return;//cant cast weak poison to cancel out strong poison
-                if ((PoisonList[i].PType != PoisonType.Green) && ((PoisonList[i].Duration - PoisonList[i].Time) > p.Duration)) return;//cant cast 1 second poison to make a 1minute poison go away!
-                if (p.PType == PoisonType.DelayedExplosion) return;
-                if ((PoisonList[i].PType == PoisonType.Frozen) || (PoisonList[i].PType == PoisonType.Slow) || (PoisonList[i].PType == PoisonType.Paralysis) || (PoisonList[i].PType == PoisonType.LRParalysis)) return;//prevents mobs from being perma frozen/slowed
-                PoisonList[i] = p;
+                base.DrawName();
                 return;
             }
 
-            if (p.PType == PoisonType.DelayedExplosion)
+            string[] splitName = Name.Split('_');
+
+            //IntelligentCreature
+            int yOffset = 0;
+            switch (BaseImage)
             {
-                ExplosionInflictedTime = Envir.Time + 4000;
-                Broadcast(new S.ObjectEffect { ObjectID = ObjectID, Effect = SpellEffect.DelayedExplosion });
+                case Monster.Chick:
+                    yOffset = -10;
+                    break;
+                case Monster.BabyPig:
+                case Monster.Kitten:
+                case Monster.BabySkeleton:
+                case Monster.Baekdon:
+                case Monster.Wimaen:
+                case Monster.BlackKitten:
+                case Monster.BabyDragon:
+                case Monster.OlympicFlame:
+                case Monster.BabySnowMan:
+                case Monster.Frog:
+                case Monster.BabyMonkey:
+                    yOffset = -20;
+                    break;
             }
 
-            if (p.PType == PoisonType.Frozen)
+            for (int s = 0; s < splitName.Count(); s++)
             {
-                Broadcast(new S.ObjectEffect { ObjectID = ObjectID, Effect = SpellEffect.Frozen });
-            }
-
-            PoisonList.Add(p);
-        }
-        public override void AddBuff(Buff b)
-        {
-            if (Buffs.Any(d => d.Infinite && d.Type == b.Type)) return; //cant overwrite infinite buff with regular buff
-
-            string caster = b.Caster != null ? b.Caster.Name : string.Empty;
-
-            if (b.Values == null) b.Values = new int[1];
-
-            S.AddBuff addBuff = new S.AddBuff { Type = b.Type, Caster = caster, Expire = b.ExpireTime - Envir.Time, Values = b.Values, Infinite = b.Infinite, ObjectID = ObjectID, Visible = b.Visible };
-
-            if (b.Visible) Broadcast(addBuff);
-
-            base.AddBuff(b);
-            RefreshAll();
-        }
-        
-        public override Packet GetInfo()
-        {
-            return new S.ObjectMonster
-                {
-                    ObjectID = ObjectID,
-                    Name = Name,
-                    NameColour = NameColour,
-                    Location = CurrentLocation,
-                    Image = Info.Image,
-                    Direction = Direction,
-                    Effect = Info.Effect,
-                    AI = Info.AI,
-                    Light = Info.Light,
-                    Dead = Dead,
-                    Skeleton = Harvested,
-                    Poison = CurrentPoison,
-                    Hidden = Hidden,
-                    ShockTime = (ShockTime > 0 ? ShockTime - Envir.Time : 0),
-                    BindingShotCenter = BindingShotCenter
-                };
-        }
-
-        public override void ReceiveChat(string text, ChatType type)
-        {
-            throw new NotSupportedException();
-        }
-
-        public void RemoveObjects(MirDirection dir, int count)
-        {
-            switch (dir)
-            {
-                case MirDirection.Up:
-                    //Bottom Block
-                    for (int a = 0; a < count; a++)
-                    {
-                        int y = CurrentLocation.Y + Globals.DataRange - a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = -Globals.DataRange; b <= Globals.DataRange; b++)
-                        {
-                            int x = CurrentLocation.X + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Remove(this);
-                            }
-                        }
-                    }
-                    break;
-                case MirDirection.UpRight:
-                    //Bottom Block
-                    for (int a = 0; a < count; a++)
-                    {
-                        int y = CurrentLocation.Y + Globals.DataRange - a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = -Globals.DataRange; b <= Globals.DataRange; b++)
-                        {
-                            int x = CurrentLocation.X + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Remove(this);
-                            }
-                        }
-                    }
-
-                    //Left Block
-                    for (int a = -Globals.DataRange; a <= Globals.DataRange - count; a++)
-                    {
-                        int y = CurrentLocation.Y + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = 0; b < count; b++)
-                        {
-                            int x = CurrentLocation.X - Globals.DataRange + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Remove(this);
-                            }
-                        }
-                    }
-                    break;
-                case MirDirection.Right:
-                    //Left Block
-                    for (int a = -Globals.DataRange; a <= Globals.DataRange; a++)
-                    {
-                        int y = CurrentLocation.Y + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = 0; b < count; b++)
-                        {
-                            int x = CurrentLocation.X - Globals.DataRange + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Remove(this);
-                            }
-                        }
-                    }
-                    break;
-                case MirDirection.DownRight:
-                    //Top Block
-                    for (int a = 0; a < count; a++)
-                    {
-                        int y = CurrentLocation.Y - Globals.DataRange + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = -Globals.DataRange; b <= Globals.DataRange; b++)
-                        {
-                            int x = CurrentLocation.X + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Remove(this);
-                            }
-                        }
-                    }
-
-                    //Left Block
-                    for (int a = -Globals.DataRange + count; a <= Globals.DataRange; a++)
-                    {
-                        int y = CurrentLocation.Y + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = 0; b < count; b++)
-                        {
-                            int x = CurrentLocation.X - Globals.DataRange + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Remove(this);
-                            }
-                        }
-                    }
-                    break;
-                case MirDirection.Down:
-                    for (int a = 0; a < count; a++)
-                    {
-                        int y = CurrentLocation.Y - Globals.DataRange + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = -Globals.DataRange; b <= Globals.DataRange; b++)
-                        {
-                            int x = CurrentLocation.X + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Remove(this);
-                            }
-                        }
-                    }
-                    break;
-                case MirDirection.DownLeft:
-                    //Top Block
-                    for (int a = 0; a < count; a++)
-                    {
-                        int y = CurrentLocation.Y - Globals.DataRange + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = -Globals.DataRange; b <= Globals.DataRange; b++)
-                        {
-                            int x = CurrentLocation.X + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Remove(this);
-                            }
-                        }
-                    }
-
-                    //Right Block
-                    for (int a = -Globals.DataRange + count; a <= Globals.DataRange; a++)
-                    {
-                        int y = CurrentLocation.Y + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = 0; b < count; b++)
-                        {
-                            int x = CurrentLocation.X + Globals.DataRange - b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Remove(this);
-                            }
-                        }
-                    }
-                    break;
-                case MirDirection.Left:
-                    for (int a = -Globals.DataRange; a <= Globals.DataRange; a++)
-                    {
-                        int y = CurrentLocation.Y + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = 0; b < count; b++)
-                        {
-                            int x = CurrentLocation.X + Globals.DataRange - b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Remove(this);
-                            }
-                        }
-                    }
-                    break;
-                case MirDirection.UpLeft:
-                    //Bottom Block
-                    for (int a = 0; a < count; a++)
-                    {
-                        int y = CurrentLocation.Y + Globals.DataRange - a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = -Globals.DataRange; b <= Globals.DataRange; b++)
-                        {
-                            int x = CurrentLocation.X + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Remove(this);
-                            }
-                        }
-                    }
-
-                    //Right Block
-                    for (int a = -Globals.DataRange; a <= Globals.DataRange - count; a++)
-                    {
-                        int y = CurrentLocation.Y + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = 0; b < count; b++)
-                        {
-                            int x = CurrentLocation.X + Globals.DataRange - b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Remove(this);
-                            }
-                        }
-                    }
-                    break;
-            }
-        }
-        public void AddObjects(MirDirection dir, int count)
-        {
-            switch (dir)
-            {
-                case MirDirection.Up:
-                    for (int a = 0; a < count; a++)
-                    {
-                        int y = CurrentLocation.Y - Globals.DataRange + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = -Globals.DataRange; b <= Globals.DataRange; b++)
-                        {
-                            int x = CurrentLocation.X + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Add(this);
-                            }
-                        }
-                    }
-                    break;
-                case MirDirection.UpRight:
-                    //Top Block
-                    for (int a = 0; a < count; a++)
-                    {
-                        int y = CurrentLocation.Y - Globals.DataRange + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = -Globals.DataRange; b <= Globals.DataRange; b++)
-                        {
-                            int x = CurrentLocation.X + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Add(this);
-                            }
-                        }
-                    }
-
-                    //Right Block
-                    for (int a = -Globals.DataRange + count; a <= Globals.DataRange; a++)
-                    {
-                        int y = CurrentLocation.Y + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = 0; b < count; b++)
-                        {
-                            int x = CurrentLocation.X + Globals.DataRange - b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Add(this);
-                            }
-                        }
-                    }
-                    break;
-                case MirDirection.Right:
-                    for (int a = -Globals.DataRange; a <= Globals.DataRange; a++)
-                    {
-                        int y = CurrentLocation.Y + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = 0; b < count; b++)
-                        {
-                            int x = CurrentLocation.X + Globals.DataRange - b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Add(this);
-                            }
-                        }
-                    }
-                    break;
-                case MirDirection.DownRight:
-                    //Bottom Block
-                    for (int a = 0; a < count; a++)
-                    {
-                        int y = CurrentLocation.Y + Globals.DataRange - a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = -Globals.DataRange; b <= Globals.DataRange; b++)
-                        {
-                            int x = CurrentLocation.X + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Add(this);
-                            }
-                        }
-                    }
-
-                    //Right Block
-                    for (int a = -Globals.DataRange; a <= Globals.DataRange - count; a++)
-                    {
-                        int y = CurrentLocation.Y + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = 0; b < count; b++)
-                        {
-                            int x = CurrentLocation.X + Globals.DataRange - b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Add(this);
-                            }
-                        }
-                    }
-                    break;
-                case MirDirection.Down:
-                    //Bottom Block
-                    for (int a = 0; a < count; a++)
-                    {
-                        int y = CurrentLocation.Y + Globals.DataRange - a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = -Globals.DataRange; b <= Globals.DataRange; b++)
-                        {
-                            int x = CurrentLocation.X + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Add(this);
-                            }
-                        }
-                    }
-                    break;
-                case MirDirection.DownLeft:
-                    //Bottom Block
-                    for (int a = 0; a < count; a++)
-                    {
-                        int y = CurrentLocation.Y + Globals.DataRange - a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = -Globals.DataRange; b <= Globals.DataRange; b++)
-                        {
-                            int x = CurrentLocation.X + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Add(this);
-                            }
-                        }
-                    }
-
-                    //Left Block
-                    for (int a = -Globals.DataRange; a <= Globals.DataRange - count; a++)
-                    {
-                        int y = CurrentLocation.Y + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = 0; b < count; b++)
-                        {
-                            int x = CurrentLocation.X - Globals.DataRange + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Add(this);
-                            }
-                        }
-                    }
-                    break;
-                case MirDirection.Left:
-                    //Left Block
-                    for (int a = -Globals.DataRange; a <= Globals.DataRange; a++)
-                    {
-                        int y = CurrentLocation.Y + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = 0; b < count; b++)
-                        {
-                            int x = CurrentLocation.X - Globals.DataRange + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Add(this);
-                            }
-                        }
-                    }
-                    break;
-                case MirDirection.UpLeft:
-                    //Top Block
-                    for (int a = 0; a < count; a++)
-                    {
-                        int y = CurrentLocation.Y - Globals.DataRange + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = -Globals.DataRange; b <= Globals.DataRange; b++)
-                        {
-                            int x = CurrentLocation.X + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Add(this);
-                            }
-                        }
-                    }
-
-                    //Left Block
-                    for (int a = -Globals.DataRange + count; a <= Globals.DataRange; a++)
-                    {
-                        int y = CurrentLocation.Y + a;
-                        if (y < 0 || y >= CurrentMap.Height) continue;
-
-                        for (int b = 0; b < count; b++)
-                        {
-                            int x = CurrentLocation.X - Globals.DataRange + b;
-                            if (x < 0 || x >= CurrentMap.Width) continue;
-
-                            Cell cell = CurrentMap.GetCell(x, y);
-
-                            if (!cell.Valid || cell.Objects == null) continue;
-
-                            for (int i = 0; i < cell.Objects.Count; i++)
-                            {
-                                MapObject ob = cell.Objects[i];
-                                if (ob.Race != ObjectType.Player) continue;
-                                ob.Add(this);
-                            }
-                        }
-                    }
-                    break;
+                CreateMonsterLabel(splitName[s], s);
+
+                TempLabel.Text = splitName[s];
+                TempLabel.Location = new Point(DisplayRectangle.X + (48 - TempLabel.Size.Width) / 2, DisplayRectangle.Y - (32 - TempLabel.Size.Height / 2) + (Dead ? 35 : 8) - (((splitName.Count() - 1) * 10) / 2) + (s * 12) + yOffset);
+                TempLabel.Draw();
             }
         }
 
-        public override void Add(PlayerObject player)
+        public void CreateMonsterLabel(string word, int wordOrder)
         {
-            player.Enqueue(GetInfo());
-            SendHealth(player);
+            TempLabel = null;
+
+            for (int i = 0; i < LabelList.Count; i++)
+            {
+                if (LabelList[i].Text != word) continue;
+                TempLabel = LabelList[i];
+                break;
+            }
+
+            if (TempLabel != null && !TempLabel.IsDisposed && NameColour == OldNameColor) return;
+
+            OldNameColor = NameColour;
+
+            TempLabel = new MirLabel
+            {
+                AutoSize = true,
+                BackColour = Color.Transparent,
+                ForeColour = NameColour,
+                OutLine = true,
+                OutLineColour = Color.Black,
+                Text = word,
+            };
+
+            TempLabel.Disposing += (o, e) => LabelList.Remove(TempLabel);
+            LabelList.Add(TempLabel);
         }
 
-        public override void SendHealth(PlayerObject player)
+        public override void DrawChat()
         {
-            if (!player.IsMember(Master) && !(player.IsMember(EXPOwner) && AutoRev) && Envir.Time > RevTime) return;
-            byte time = Math.Min(byte.MaxValue, (byte) Math.Max(5, (RevTime - Envir.Time)/1000));
-            player.Enqueue(new S.ObjectHealth { ObjectID = ObjectID, Percent = PercentHealth, Expire = time });
+            if (ChatLabel == null || ChatLabel.IsDisposed) return;
+
+            if (CMain.Time > ChatTime)
+            {
+                ChatLabel.Dispose();
+                ChatLabel = null;
+                return;
+            }
+
+            //IntelligentCreature
+            int yOffset = 0;
+            switch (BaseImage)
+            {
+                case Monster.Chick:
+                    yOffset = 30;
+                    break;
+                case Monster.BabyPig:
+                case Monster.Kitten:
+                case Monster.BabySkeleton:
+                case Monster.Baekdon:
+                case Monster.Wimaen:
+                case Monster.BlackKitten:
+                case Monster.BabyDragon:
+                case Monster.OlympicFlame:
+                case Monster.BabySnowMan:
+                case Monster.Frog:
+                case Monster.BabyMonkey:
+                    yOffset = 20;
+                    break;
+            }
+
+            ChatLabel.ForeColour = Dead ? Color.Gray : Color.White;
+            ChatLabel.Location = new Point(DisplayRectangle.X + (48 - ChatLabel.Size.Width) / 2, DisplayRectangle.Y - (60 + ChatLabel.Size.Height) - (Dead ? 35 : 0) + yOffset);
+            ChatLabel.Draw();
         }
-
-        public void PetExp(uint amount)
-        {
-            if (PetLevel >= MaxPetLevel) return;
-
-            if (Info.Name == Settings.SkeletonName || Info.Name == Settings.ShinsuName || Info.Name == Settings.AngelName)
-                amount *= 3;
-
-            PetExperience += amount;
-
-            if (PetExperience < (PetLevel + 1)*20000) return;
-
-            PetExperience = (uint) (PetExperience - ((PetLevel + 1)*20000));
-            PetLevel++;
-            RefreshAll();
-            OperateTime = 0;
-            BroadcastHealthChange();
-        }
-        public override void Despawn()
-        {
-            SlaveList.Clear();
-            base.Despawn();
-        }
-
     }
 }
